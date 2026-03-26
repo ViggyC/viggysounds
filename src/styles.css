@@ -1,0 +1,1051 @@
+:root {
+  --bg0: #07070b;
+  --bg1: #0b0b16;
+  --card: rgba(255, 255, 255, 0.06);
+  --card2: rgba(255, 255, 255, 0.085);
+  --stroke: rgba(255, 255, 255, 0.12);
+  --stroke2: rgba(255, 255, 255, 0.18);
+  --text: rgba(245, 246, 255, 0.96);
+  --muted: rgba(245, 246, 255, 0.72);
+  --accent: #7c3aed;
+  --accent2: #22d3ee;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background-color: var(--bg1);
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    "Apple Color Emoji",
+    "Segoe UI Emoji";
+  color: var(--text);
+  /* Single flat fill — radials + long linear gradients shift color by Y and show through grid gaps / mid-section */
+  background-color: var(--bg1);
+}
+
+a {
+  color: inherit;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: min(
+    980px,
+    calc(
+      100% - 2rem - env(safe-area-inset-left, 0px) -
+        env(safe-area-inset-right, 0px)
+    )
+  );
+  margin: 0 auto;
+}
+
+.hero {
+  position: relative;
+  padding: calc(84px + env(safe-area-inset-top, 0px)) 0 26px;
+  background-color: var(--bg1);
+  background-size: cover;
+  /* Center the focal area; bottom seam is handled by .heroOverlay + .hero::after */
+  background-position: center;
+  border-bottom: none;
+  overflow: hidden;
+}
+
+/* Seals any subpixel gap / bright pixels from the photo at the seam with main */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  background: linear-gradient(180deg, transparent, var(--bg1));
+  pointer-events: none;
+  z-index: 2;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 7, 11, 0.15) 0%,
+      rgba(7, 7, 11, 0.88) 78%,
+      rgba(7, 7, 11, 0.97) 92%,
+      var(--bg1) 100%
+    ),
+    radial-gradient(
+      900px 450px at 20% 10%,
+      rgba(124, 58, 237, 0.36),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 450px at 90% 0%,
+      rgba(34, 211, 238, 0.26),
+      transparent 62%
+    );
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 22px;
+}
+
+/* Logo + tagline as one tight block; quick links sit below with clearer separation */
+.heroBrand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.brandPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+}
+
+.brandDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.14);
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 3.65rem);
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+}
+
+.heroLogo {
+  display: block;
+  width: min(560px, 92vw);
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 18px 55px rgba(0, 0, 0, 0.35));
+}
+
+.heroTagline {
+  margin: 0;
+  max-width: 62ch;
+  color: rgba(245, 246, 255, 0.82);
+  font-size: clamp(1.08rem, 1.6vw, 1.35rem);
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.quickLinks {
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(560px, 100%);
+}
+
+.linkBtn {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.23),
+    rgba(34, 211, 238, 0.14)
+  );
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.32);
+  font-weight: 800;
+  min-height: 48px;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.linkBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.28),
+    rgba(34, 211, 238, 0.18)
+  );
+}
+
+.socialRow {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.socialChip {
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.socialChip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.socialDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.main {
+  padding: 26px 0 50px;
+}
+
+.main .section:first-child {
+  margin-top: 0;
+}
+
+.section {
+  scroll-margin-top: 90px;
+  margin-top: 26px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.sectionHeaderCentered {
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* Extra separation after Past Shows so the Media heading never collides with show cards */
+#shows-past + #media {
+  margin-top: clamp(2.25rem, 5vw, 3.25rem);
+  padding-top: 0.35rem;
+}
+
+/* Space between YouTube block and contact (same as other section gaps; no extra panel BGs) */
+#youtube + #contact.footerSection {
+  margin-top: clamp(2.25rem, 5vw, 3.25rem);
+}
+
+.muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.linkGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.musicToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.filterBtn {
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 900;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+  cursor: pointer;
+  min-height: 44px;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.filterBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.filterBtnActive {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.3),
+    rgba(34, 211, 238, 0.18)
+  );
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.musicGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.musicCard {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 14px 14px;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease,
+    background 150ms ease;
+}
+
+.musicCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.musicCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.musicCoverImg {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.musicTitle {
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.musicTypePill {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 900;
+  font-size: 0.86rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.musicTypeOriginal {
+  background: rgba(124, 58, 237, 0.22);
+  border-color: rgba(124, 58, 237, 0.45);
+}
+
+.musicTypeRemix {
+  background: rgba(34, 211, 238, 0.16);
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.musicMeta {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.musicLinksRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.musicChip {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-weight: 900;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.musicChip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.emptyState {
+  grid-column: 1/-1;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 16px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.linkCard {
+  text-decoration: none;
+  background: linear-gradient(180deg, var(--card), rgba(255, 255, 255, 0.035));
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  padding: 14px 14px;
+  min-height: 92px;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.linkCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(180deg, var(--card2), rgba(255, 255, 255, 0.04));
+}
+
+.linkCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.linkCardTitle {
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  font-size: 1.05rem;
+}
+
+.linkCardArrow {
+  color: rgba(245, 246, 255, 0.9);
+}
+
+.linkCardNote {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.showList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.showCard {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 14px 14px;
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease,
+    background 150ms ease;
+}
+
+.showCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.showCardAlt {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.showDate {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: rgba(245, 246, 255, 0.92);
+}
+
+.showTitle {
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.showVenue {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.96rem;
+}
+
+.pillBtn {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 900;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.3),
+    rgba(34, 211, 238, 0.18)
+  );
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease;
+  text-align: center;
+  min-width: 110px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pillBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pillBtnDisabled {
+  opacity: 0.7;
+  cursor: default;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mediaItem {
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 18px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.mediaItem.mediaItemPhoto {
+  padding: 0;
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mediaItem.mediaItemPhoto .mediaImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+  display: block;
+}
+
+.mediaPhotoButton {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: zoom-in;
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  background: transparent;
+}
+
+.mediaPhotoButton:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.65);
+  outline-offset: 3px;
+}
+
+.mediaImg {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.mediaCaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.93rem;
+  line-height: 1.2;
+}
+
+.mediaCaptionVideo {
+  margin-top: 10px;
+}
+
+.youtubeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  /* Room for youtubeCard:hover translateY(-2px) so it doesn’t clip into the next section */
+  padding-bottom: 6px;
+}
+
+.youtubeCard {
+  padding: 0;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 18px;
+  overflow: hidden;
+  text-align: left;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.youtubeCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.youtubeThumbWrap {
+  position: relative;
+}
+
+.youtubeThumb {
+  display: block;
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+}
+
+.youtubePlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.35));
+}
+
+.youtubeTitle {
+  padding: 12px 12px 14px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.footerSection {
+  margin-bottom: 30px;
+}
+
+.footerCard {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.16),
+    rgba(34, 211, 238, 0.08)
+  );
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footerCardForm {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.contactIntro {
+  width: 100%;
+}
+
+.contactForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactFields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: rgba(245, 246, 255, 0.88);
+  margin-top: 4px;
+}
+
+.fieldLabel:first-of-type {
+  margin-top: 0;
+}
+
+.fieldInput,
+.fieldTextarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font: inherit;
+  padding: 12px 14px;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.fieldInput::placeholder,
+.fieldTextarea::placeholder {
+  color: rgba(245, 246, 255, 0.4);
+}
+
+.fieldInput:focus,
+.fieldTextarea:focus {
+  outline: none;
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.fieldTextarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.45;
+}
+
+.contactSubmit {
+  margin-top: 4px;
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-weight: 900;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.45),
+    rgba(34, 211, 238, 0.25)
+  );
+  color: var(--text);
+  min-height: 48px;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+
+.contactSubmit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.contactSubmit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.formMessage {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.formMessageError {
+  color: #fda4af;
+}
+
+.formMessageSuccess {
+  color: rgba(167, 243, 208, 0.95);
+}
+
+.finePrint {
+  margin-top: 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.textLink {
+  color: rgba(245, 246, 255, 0.95);
+  text-decoration: none;
+  font-weight: 900;
+  padding: 8px 0;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(18px + env(safe-area-inset-top, 0px))
+    calc(18px + env(safe-area-inset-right, 0px))
+    calc(18px + env(safe-area-inset-bottom, 0px))
+    calc(18px + env(safe-area-inset-left, 0px));
+  z-index: 50;
+}
+
+.modalBackdropButton {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  border: 0;
+  padding: 0;
+}
+
+.modalBackdropPhoto {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal {
+  position: relative;
+  width: min(980px, 100%);
+  border-radius: 20px;
+  background: rgba(15, 15, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modalTitle {
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.modalClose {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.modalClose:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+.modalBody {
+  aspect-ratio: 16/9;
+  width: 100%;
+  background: #000;
+}
+
+.modalBody iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.modalLightbox {
+  width: min(1100px, 100%);
+  max-height: min(92vh, 1000px);
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.modalHeaderLightbox {
+  background: rgba(12, 12, 18, 0.75);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px 16px 0 0;
+}
+
+.modalBodyLightbox {
+  aspect-ratio: unset;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 4px;
+  background: transparent;
+}
+
+.lightboxImg {
+  max-width: 100%;
+  max-height: min(78vh, 900px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  filter: none;
+  opacity: 1;
+  display: block;
+}
+
+.modalFooter {
+  padding: 14px 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 960px) {
+  .linkGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .musicGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mediaGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .youtubeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .showCard {
+    grid-template-columns: 120px 1fr auto;
+  }
+  /* aspect-ratio handles sizing */
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding: calc(58px + env(safe-area-inset-top, 0px)) 0 18px;
+  }
+  .heroInner {
+    gap: 18px;
+  }
+
+  .heroBrand {
+    gap: 6px;
+  }
+  .heroLogo {
+    width: min(420px, 92vw);
+  }
+  .quickLinks {
+    grid-template-columns: 1fr;
+  }
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sectionHeader.sectionHeaderCentered {
+    align-items: center;
+  }
+  .linkGrid {
+    grid-template-columns: 1fr;
+  }
+  .musicGrid {
+    grid-template-columns: 1fr;
+  }
+  .youtubeGrid {
+    grid-template-columns: 1fr;
+  }
+  .mediaGrid {
+    grid-template-columns: 1fr;
+  }
+  .showCard {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  /* aspect-ratio handles sizing */
+}

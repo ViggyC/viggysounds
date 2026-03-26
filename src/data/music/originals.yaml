@@ -1,0 +1,31 @@
+category: original
+tracks:
+  - title: "ENERGY"
+    spotify: "https://open.spotify.com/track/2gwnvLFv8GSP40J7UhTe1w?si=8af32f37fa264375"
+    soundcloud: "https://soundcloud.com/browneedub/energy"
+    coverArt: "media/cover-art/ENERGY.JPG"
+    description: "Brownee x VIGGY x Keylo"
+
+  - title: "DEEPER"
+    spotify: "https://open.spotify.com/track/1Aja7ucCKHIgLB9Xh8Ta08?si=80afea562d2e4a58"
+    soundcloud: "https://soundcloud.com/viggysounds/deeper"
+    coverArt: "media/cover-art/DEEPER.png"
+    description: "Journey into the depths of the mind and heart"
+
+  - title: "I LIKE THAT."
+    spotify: "https://open.spotify.com/track/2WcLzt5KrKxnEV5UffJ4us?si=667f9843de6b4633"
+    soundcloud: "https://soundcloud.com/viggysounds/i-like-that-viggy"
+    coverArt: "media/cover-art/ILIKETHAT.png"
+    description: "You will like this"
+
+  - title: "COHERENCE"
+    spotify: "https://open.spotify.com/track/5Df4HkiGshTf4XhaDqhRmt?si=1f9b5bf970d6403c"
+    soundcloud: "https://soundcloud.com/viggysounds/coherence"
+    coverArt: "media/cover-art/coherence.jpeg"
+    description: "The flow of awareness and insight that we experience once the mind and emotions are brought into balance"
+
+  - title: "GET YOU HIGH"
+    spotify: "https://open.spotify.com/track/4dEoahugDtvbClnbjscnOx?si=5f23a8a957604757"
+    soundcloud: "https://soundcloud.com/viggysounds/getyouhigh"
+    coverArt: "media/cover-art/get_you_high.png"
+    description: "Just Vibes"
