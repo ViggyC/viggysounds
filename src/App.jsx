@@ -549,6 +549,12 @@ export default function App() {
           aria-modal="true"
           aria-label="Photo lightbox"
         >
+          <button
+            className="modalBackdropButton modalBackdropPhoto"
+            type="button"
+            onClick={() => setLightboxPhoto(null)}
+            aria-label="Close photo"
+          />
           <div className="modal modalLightbox">
             <div className="modalHeader modalHeaderLightbox">
               <div className="modalTitle">{lightboxPhoto.alt}</div>
@@ -569,12 +575,6 @@ export default function App() {
               />
             </div>
           </div>
-          <button
-            className="modalBackdropButton modalBackdropPhoto"
-            type="button"
-            onClick={() => setLightboxPhoto(null)}
-            aria-label="Close photo"
-          />
         </div>
       ) : null}
 
@@ -585,6 +585,12 @@ export default function App() {
           aria-modal="true"
           aria-label="YouTube video modal"
         >
+          <button
+            className="modalBackdropButton"
+            type="button"
+            onClick={() => setActiveVideoId(null)}
+            aria-label="Close modal"
+          />
           <div className="modal">
             <div className="modalHeader">
               <div className="modalTitle">{activeVideo.title}</div>
@@ -617,12 +623,6 @@ export default function App() {
               </a>
             </div>
           </div>
-          <button
-            className="modalBackdropButton"
-            type="button"
-            onClick={() => setActiveVideoId(null)}
-            aria-label="Close modal"
-          />
         </div>
       ) : null}
     </div>

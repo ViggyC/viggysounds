@@ -878,11 +878,18 @@ a {
     calc(18px + env(safe-area-inset-bottom, 0px))
     calc(18px + env(safe-area-inset-left, 0px));
   z-index: 50;
+  /* Scroll when modal is taller than the viewport (small phones); reliable taps on footer link */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 .modalBackdropButton {
   position: absolute;
   inset: 0;
+  z-index: 0;
   background: rgba(0, 0, 0, 0.65);
   border: 0;
   padding: 0;
@@ -894,6 +901,7 @@ a {
 
 .modal {
   position: relative;
+  z-index: 1;
   width: min(980px, 100%);
   border-radius: 20px;
   background: rgba(15, 15, 26, 0.95);
@@ -931,14 +939,18 @@ a {
 }
 
 .modalBody {
+  position: relative;
+  z-index: 0;
   aspect-ratio: 16/9;
   width: 100%;
   background: #000;
+  overflow: hidden;
 }
 
 .modalBody iframe {
   width: 100%;
   height: 100%;
+  border: 0;
 }
 
 .modalLightbox {
@@ -983,8 +995,32 @@ a {
 }
 
 .modalFooter {
+  position: relative;
+  z-index: 2;
   padding: 14px 14px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tap target + layer above iframe (mobile WebKit can mis-hit touches otherwise) */
+.modalFooter .textLink {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  align-items: center;
+  padding: 12px 14px;
+  margin: -4px -10px;
+  border-radius: 12px;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.12);
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .modalOverlay {
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: max(14px, env(safe-area-inset-top, 0px));
+  }
 }
 
 @media (max-width: 960px) {
