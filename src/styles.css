@@ -964,6 +964,140 @@ a {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.mediaSlideshowHint {
+  margin: 0 0 14px;
+  font-weight: 650;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.mediaSlideshow {
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+  outline: none;
+}
+
+.mediaSlideshowStage {
+  position: relative;
+}
+
+.mediaSlideshow:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.55);
+  outline-offset: 4px;
+  border-radius: 20px;
+}
+
+.mediaSlideshowViewport {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+  aspect-ratio: 4 / 3;
+  position: relative;
+}
+
+.mediaSlideshowTrack {
+  display: flex;
+  height: 100%;
+  transition: transform 0.45s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mediaSlideshowTrack {
+    transition: none;
+  }
+}
+
+.mediaSlideshowSlide {
+  flex-shrink: 0;
+  height: 100%;
+  position: relative;
+}
+
+.mediaSlideshowPhotoBtn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mediaSlideshowSlide .mediaImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  display: block;
+}
+
+.mediaSlideshowArrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 12, 20, 0.65);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.mediaSlideshowArrow:hover {
+  background: rgba(20, 24, 36, 0.85);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.mediaSlideshowArrowPrev {
+  left: 10px;
+}
+
+.mediaSlideshowArrowNext {
+  right: 10px;
+}
+
+.mediaSlideshowDots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  max-width: 100%;
+}
+
+.mediaSlideshowDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+
+.mediaSlideshowDot:hover {
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mediaSlideshowDotActive {
+  background: rgba(34, 211, 238, 0.85);
+  border-color: rgba(34, 211, 238, 0.5);
+}
+
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

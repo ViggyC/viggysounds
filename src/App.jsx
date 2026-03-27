@@ -138,9 +138,14 @@ function MusicLinksRow({ track: t }) {
 export default function App() {
   const [activeVideoId, setActiveVideoId] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
+  const [photoSlideIndex, setPhotoSlideIndex] = useState(0);
+  const [photoSlidePaused, setPhotoSlidePaused] = useState(false);
   const [musicFilter, setMusicFilter] = useState("both"); // original | remix | both | soundcloud
-  /** Narrow viewports: compact music rows; expand for cover, description, links */
+  /** Narrow viewports: compact music rows + photo slideshow (grid on wider screens) */
   const musicCompact = useMediaQuery("(max-width: 560px)");
+  const prefersReducedMotion = useMediaQuery(
+    "(prefers-reduced-motion: reduce)",
+  );
   const [musicExpanded, setMusicExpanded] = useState({});
   const [soundcloudPanelOpen, setSoundcloudPanelOpen] = useState(false);
   const [contactName, setContactName] = useState("");
@@ -200,6 +205,30 @@ export default function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxPhoto, activeVideoId]);
+
+  const showPhotosList = showPhotos || [];
+  const showPhotoCount = showPhotosList.length;
+
+  useEffect(() => {
+    setPhotoSlideIndex((i) =>
+      showPhotoCount === 0 ? 0 : Math.min(i, showPhotoCount - 1),
+    );
+  }, [showPhotoCount]);
+
+  useEffect(() => {
+    if (
+      !musicCompact ||
+      showPhotoCount <= 1 ||
+      photoSlidePaused ||
+      prefersReducedMotion
+    ) {
+      return undefined;
+    }
+    const id = window.setInterval(() => {
+      setPhotoSlideIndex((i) => (i + 1) % showPhotoCount);
+    }, 5500);
+    return () => window.clearInterval(id);
+  }, [musicCompact, showPhotoCount, photoSlidePaused, prefersReducedMotion]);
 
   const upcoming = useMemo(() => {
     return [...EPK.upcomingShows].sort((a, b) => {
@@ -749,27 +778,158 @@ export default function App() {
           <div className="sectionHeader">
             <h2>Media</h2>
           </div>
-          <h5>Click on a photo to expand</h5>
+          {showPhotoCount > 0 ? (
+            musicCompact ? (
+              <>
+                <div
+                  className="mediaSlideshow"
+                  onMouseEnter={() => setPhotoSlidePaused(true)}
+                  onMouseLeave={() => setPhotoSlidePaused(false)}
+                  onPointerDown={() => setPhotoSlidePaused(true)}
+                  onPointerUp={() => setPhotoSlidePaused(false)}
+                  onPointerCancel={() => setPhotoSlidePaused(false)}
+                  onKeyDown={(e) => {
+                    if (showPhotoCount <= 1) return;
+                    if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      setPhotoSlideIndex(
+                        (i) => (i - 1 + showPhotoCount) % showPhotoCount,
+                      );
+                    } else if (e.key === "ArrowRight") {
+                      e.preventDefault();
+                      setPhotoSlideIndex((i) => (i + 1) % showPhotoCount);
+                    }
+                  }}
+                  role="region"
+                  aria-roledescription="carousel"
+                  aria-label="Show photos"
+                  tabIndex={0}
+                >
+                  <div className="mediaSlideshowStage">
+                    <div className="mediaSlideshowViewport">
+                      <div
+                        className="mediaSlideshowTrack"
+                        style={{
+                          width: `${showPhotoCount * 100}%`,
+                          transform: `translateX(-${(photoSlideIndex * 100) / showPhotoCount}%)`,
+                        }}
+                      >
+                        {showPhotosList.map((p, idx) => (
+                          <div
+                            key={p.src + idx}
+                            className="mediaSlideshowSlide"
+                            style={{ width: `${100 / showPhotoCount}%` }}
+                            aria-hidden={idx !== photoSlideIndex}
+                          >
+                            <button
+                              type="button"
+                              className="mediaPhotoButton mediaSlideshowPhotoBtn"
+                              onClick={() => {
+                                setActiveVideoId(null);
+                                setLightboxPhoto({
+                                  src: p.src,
+                                  alt: p.alt || `Show photo ${idx + 1}`,
+                                });
+                              }}
+                              aria-label={`Expand photo: ${p.alt || `Photo ${idx + 1}`}`}
+                            >
+                              <img
+                                className="mediaImg"
+                                src={p.src}
+                                alt=""
+                                loading={idx === 0 ? "eager" : "lazy"}
+                              />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-          <div className="mediaGrid">
-            {(showPhotos || []).map((p, idx) => (
-              <button
-                key={p.src + idx}
-                type="button"
-                className="mediaItem mediaItemPhoto mediaPhotoButton"
-                onClick={() => {
-                  setActiveVideoId(null);
-                  setLightboxPhoto({
-                    src: p.src,
-                    alt: p.alt || `Show photo ${idx + 1}`,
-                  });
-                }}
-                aria-label={`Expand photo: ${p.alt || `Photo ${idx + 1}`}`}
-              >
-                <img className="mediaImg" src={p.src} alt="" loading="lazy" />
-              </button>
-            ))}
-          </div>
+                    {showPhotoCount > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          className="mediaSlideshowArrow mediaSlideshowArrowPrev"
+                          onClick={() =>
+                            setPhotoSlideIndex(
+                              (i) => (i - 1 + showPhotoCount) % showPhotoCount,
+                            )
+                          }
+                          aria-label="Previous photo"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          type="button"
+                          className="mediaSlideshowArrow mediaSlideshowArrowNext"
+                          onClick={() =>
+                            setPhotoSlideIndex((i) => (i + 1) % showPhotoCount)
+                          }
+                          aria-label="Next photo"
+                        >
+                          ›
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+
+                  {showPhotoCount > 1 ? (
+                    <div
+                      className="mediaSlideshowDots"
+                      role="tablist"
+                      aria-label="Photo slides"
+                    >
+                      {showPhotosList.map((p, idx) => (
+                        <button
+                          key={`dot-${p.src}-${idx}`}
+                          type="button"
+                          role="tab"
+                          aria-selected={idx === photoSlideIndex}
+                          aria-label={`Photo ${idx + 1}`}
+                          className={
+                            idx === photoSlideIndex
+                              ? "mediaSlideshowDot mediaSlideshowDotActive"
+                              : "mediaSlideshowDot"
+                          }
+                          onClick={() => setPhotoSlideIndex(idx)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <>
+                <h5>Click on a photo to expand</h5>
+                <div className="mediaGrid" aria-label="Show photos grid">
+                  {showPhotosList.map((p, idx) => (
+                    <button
+                      key={p.src + idx}
+                      type="button"
+                      className="mediaItem mediaItemPhoto mediaPhotoButton"
+                      onClick={() => {
+                        setActiveVideoId(null);
+                        setLightboxPhoto({
+                          src: p.src,
+                          alt: p.alt || `Show photo ${idx + 1}`,
+                        });
+                      }}
+                      aria-label={`Expand photo: ${p.alt || `Photo ${idx + 1}`}`}
+                    >
+                      <img
+                        className="mediaImg"
+                        src={p.src}
+                        alt=""
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )
+          ) : (
+            <p className="muted">No show photos yet.</p>
+          )}
         </section>
 
         <section className="section" id="youtube">
