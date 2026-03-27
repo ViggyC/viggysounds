@@ -165,6 +165,14 @@ export default function App() {
       : musicFilter === "remix"
         ? remixesTracks
         : [...originalsTracks, ...remixesTracks];
+  const buildVersion = import.meta.env.VITE_BUILD_VERSION || "local";
+  const buildSha = import.meta.env.VITE_BUILD_SHA
+    ? String(import.meta.env.VITE_BUILD_SHA).slice(0, 7)
+    : null;
+  const buildBranch = import.meta.env.VITE_BUILD_BRANCH || null;
+  const buildLabel = buildSha
+    ? `v${buildVersion} · ${buildSha}${buildBranch ? ` · ${buildBranch}` : ""}`
+    : `v${buildVersion}`;
 
   return (
     <div className="page">
@@ -540,6 +548,8 @@ export default function App() {
 
           <div className="finePrint">
             © {new Date().getFullYear()} {EPK.artistName}. All rights reserved.
+            <br />
+            Build {buildLabel}
           </div>
         </section>
       </main>
