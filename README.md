@@ -25,12 +25,12 @@ flowchart LR
   EX --> SP
 ```
 
-| Piece | Role |
-|--------|------|
-| **Frontend** (`src/`) | React SPA built with Vite; `dist/` is static HTML/CSS/JS. |
-| **API** (`server/`) | Express app: proxies Spotify/SoundCloud, handles SoundCloud user OAuth, exposes `/health` and `/api/*`. |
-| **Dev** | Vite dev server proxies `/api` → `http://localhost:3001` (see `vite.config.js`). |
-| **Production** | The static site must know the API origin via **`VITE_API_BASE_URL`** (see [Frontend env](#frontend-env-vite)). |
+| Piece                 | Role                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Frontend** (`src/`) | React SPA built with Vite; `dist/` is static HTML/CSS/JS.                                                      |
+| **API** (`server/`)   | Express app: proxies Spotify/SoundCloud, handles SoundCloud user OAuth, exposes `/health` and `/api/*`.        |
+| **Dev**               | Vite dev server proxies `/api` → `http://localhost:3001` (see `vite.config.js`).                               |
+| **Production**        | The static site must know the API origin via **`VITE_API_BASE_URL`** (see [Frontend env](#frontend-env-vite)). |
 
 No database: Spotify uses an in-memory token cache; SoundCloud uses env + optional **JSON token file** on disk (or env-only access token).
 
@@ -46,17 +46,17 @@ No database: Spotify uses an in-memory token cache; SoundCloud uses env + option
 
 ### SoundCloud — two credential layers
 
-1. **App (client credentials)**  
-   - **Flow:** OAuth 2.1 client credentials against `secure.soundcloud.com/oauth/token`.  
-   - **Secrets:** `SOUNDCLOUD_CLIENT_ID`, `SOUNDCLOUD_CLIENT_SECRET`.  
+1. **App (client credentials)**
+   - **Flow:** OAuth 2.1 client credentials against `secure.soundcloud.com/oauth/token`.
+   - **Secrets:** `SOUNDCLOUD_CLIENT_ID`, `SOUNDCLOUD_CLIENT_SECRET`.
    - **Usage:** Non-user endpoints, e.g. `/api/soundcloud/tracks/:id`, `/api/soundcloud/resolve`.
 
-2. **User (authorization code + PKCE)**  
-   - Needed for **`/me`**-style data (e.g. **`/api/soundcloud/top-tracks`**, **`/api/soundcloud/me/tracks`**).  
-   - **Step 1:** Browser or HTTP client opens **`GET /api/soundcloud/auth/start`** → redirect to SoundCloud authorize.  
-   - **Step 2:** SoundCloud redirects to **`GET /api/soundcloud/auth/callback?code=&state=`** (must match **`SOUNDCLOUD_REDIRECT_URI`** registered in the SoundCloud app).  
-   - **PKCE:** Server stores `code_verifier` keyed by `state` (in-memory, ~10 minutes), then exchanges the code for tokens.  
-   - **Persistence:** Tokens are written to **`SOUNDCLOUD_USER_TOKEN_FILE`** (default: `server/.soundcloud-user-tokens.json`, gitignored). Access tokens refresh using the stored refresh token when possible.  
+2. **User (authorization code + PKCE)**
+   - Needed for **`/me`**-style data (e.g. **`/api/soundcloud/top-tracks`**, **`/api/soundcloud/me/tracks`**).
+   - **Step 1:** Browser or HTTP client opens **`GET /api/soundcloud/auth/start`** → redirect to SoundCloud authorize.
+   - **Step 2:** SoundCloud redirects to **`GET /api/soundcloud/auth/callback?code=&state=`** (must match **`SOUNDCLOUD_REDIRECT_URI`** registered in the SoundCloud app).
+   - **PKCE:** `state` is HMAC-signed and embeds the `code_verifier` (10-minute expiry), so load-balanced Machines do not need shared memory.
+   - **Persistence:** Tokens are written to **`SOUNDCLOUD_USER_TOKEN_FILE`** (default: `server/.soundcloud-user-tokens.json`, gitignored). Access tokens refresh using the stored refresh token when possible.
    - **Fallback:** `SOUNDCLOUD_USER_ACCESS_TOKEN` can override the access token if you cannot persist a file (you must refresh manually when it expires).
 
 ### CORS
@@ -73,8 +73,8 @@ No database: Spotify uses an in-memory token cache; SoundCloud uses env + option
 
 Copy `.env.example` to `.env` at the repo root if needed.
 
-| Variable | Purpose |
-|----------|---------|
+| Variable                | Purpose                                                                                                                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`VITE_API_BASE_URL`** | Full origin of the deployed API, **no trailing slash** (e.g. `https://viggysounds-api.fly.dev`). If unset, the app uses relative **`/api/...`** (works with the Vite dev proxy only). |
 
 ---
@@ -83,15 +83,15 @@ Copy `.env.example` to `.env` at the repo root if needed.
 
 Copy `server/.env.example` to `server/.env`.
 
-| Variable | Purpose |
-|----------|---------|
-| **`PORT`** | Listen port (default `3001`; Fly sets this automatically). |
-| **`CORS_ORIGIN`** | Allowed browser origins (comma-separated). |
-| **`SPOTIFY_CLIENT_ID`**, **`SPOTIFY_CLIENT_SECRET`** | Spotify Client Credentials. |
-| **`SOUNDCLOUD_CLIENT_ID`**, **`SOUNDCLOUD_CLIENT_SECRET`** | SoundCloud app + client-credentials API. |
-| **`SOUNDCLOUD_REDIRECT_URI`** | Must match the redirect URL in the SoundCloud developer app **exactly** (e.g. `https://your-api.fly.dev/api/soundcloud/auth/callback`). If omitted locally, defaults to `http://localhost:<PORT>/api/soundcloud/auth/callback`. |
-| **`SOUNDCLOUD_USER_TOKEN_FILE`** | Optional absolute path for persisted user OAuth tokens (use a file on a **mounted volume** on Fly so tokens survive restarts). |
-| **`SOUNDCLOUD_USER_ACCESS_TOKEN`** | Optional short-term override if you cannot use the token file. |
+| Variable                                                   | Purpose                                                                                                                                                                                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`PORT`**                                                 | Listen port (default `3001`; Fly sets this automatically).                                                                                                                                                                      |
+| **`CORS_ORIGIN`**                                          | Allowed browser origins (comma-separated).                                                                                                                                                                                      |
+| **`SPOTIFY_CLIENT_ID`**, **`SPOTIFY_CLIENT_SECRET`**       | Spotify Client Credentials.                                                                                                                                                                                                     |
+| **`SOUNDCLOUD_CLIENT_ID`**, **`SOUNDCLOUD_CLIENT_SECRET`** | SoundCloud app + client-credentials API.                                                                                                                                                                                        |
+| **`SOUNDCLOUD_REDIRECT_URI`**                              | Must match the redirect URL in the SoundCloud developer app **exactly** (e.g. `https://your-api.fly.dev/api/soundcloud/auth/callback`). If omitted locally, defaults to `http://localhost:<PORT>/api/soundcloud/auth/callback`. |
+| **`SOUNDCLOUD_USER_TOKEN_FILE`**                           | Optional absolute path for persisted user OAuth tokens (use a file on a **mounted volume** on Fly so tokens survive restarts).                                                                                                  |
+| **`SOUNDCLOUD_USER_ACCESS_TOKEN`**                         | Optional short-term override if you cannot use the token file.                                                                                                                                                                  |
 
 ---
 
@@ -214,13 +214,16 @@ In `fly.toml`, add a mount (Fly docs: [Volumes](https://fly.io/docs/reference/co
   destination = "/data"
 ```
 
-Set the env so tokens are written on that volume (non-secret — use `[env]` in `fly.toml` or `fly secrets` if you prefer):
+This repo’s `server/fly.toml` sets **`[env] SOUNDCLOUD_USER_TOKEN_FILE=/data/soundcloud-user-tokens.json`** so tokens land on the volume. You can override with `fly secrets set` if needed.
+
+**Volume shows as unattached:** Fly often runs **two Machines** (HA) while you created **one** volume. A volume mounts to **one Machine** only. Either create **another volume** in the **same region** with the same name (`fly volumes create soundcloud_tokens -r dfw --size 1`), or run a **single Machine**:
 
 ```bash
-fly secrets set SOUNDCLOUD_USER_TOKEN_FILE=/data/soundcloud-user-tokens.json
+fly scale count 1
+fly deploy
 ```
 
-(Or add under `[env]` in `fly.toml`.)
+Check **`fly machines list`** and **`fly volumes list`** — volume **region** must match **`primary_region`** in `fly.toml` and the region you used in `fly volumes create`.
 
 ### 3. Secrets and env
 
@@ -262,7 +265,7 @@ cd server
 fly deploy
 ```
 
-**Note:** If you run multiple Machines in the same region, OAuth `state` is stored **in memory on one Machine** — the callback might hit a different Machine and fail. For a single-machine app this is fine; for scale-out, you would need shared storage for pending OAuth state (not implemented here).
+Deploy again after scaling. For HA with multiple Machines, provision **one volume per Machine** in that region (same volume name is allowed per Fly’s model—see `fly volumes create` docs).
 
 ---
 

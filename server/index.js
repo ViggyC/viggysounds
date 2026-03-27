@@ -188,11 +188,13 @@ app.get("/api/spotify/search", async (req, res) => {
  */
 app.get("/api/soundcloud/top-tracks", async (req, res) => {
   if (!soundcloudUserConfigured()) {
-    res.status(503).json({
+    const body = {
       error:
         "SoundCloud user not connected. Open GET /api/soundcloud/auth/start once.",
       tracks: [],
-    });
+    };
+    console.warn("[GET /api/soundcloud/top-tracks] 503", body);
+    res.status(503).json(body);
     return;
   }
   const limit = Math.min(
@@ -202,7 +204,9 @@ app.get("/api/soundcloud/top-tracks", async (req, res) => {
   try {
     const all = await fetchAllMeTracks();
     const tracks = topTracksByPlayback(all, limit);
-    res.json({ ok: true, tracks });
+    const payload = { ok: true, tracks };
+    console.log("[GET /api/soundcloud/top-tracks] response", payload);
+    res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({

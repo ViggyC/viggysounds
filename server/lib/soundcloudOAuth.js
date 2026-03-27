@@ -95,7 +95,9 @@ export async function exchangeAuthorizationCode({
   const clientId = process.env.SOUNDCLOUD_CLIENT_ID?.trim();
   const clientSecret = process.env.SOUNDCLOUD_CLIENT_SECRET?.trim();
   if (!clientId || !clientSecret) {
-    throw new Error("SOUNDCLOUD_CLIENT_ID and SOUNDCLOUD_CLIENT_SECRET are required");
+    throw new Error(
+      "SOUNDCLOUD_CLIENT_ID and SOUNDCLOUD_CLIENT_SECRET are required",
+    );
   }
 
   const body = new URLSearchParams({
@@ -143,7 +145,9 @@ export async function exchangeRefreshToken(refreshToken) {
   const clientId = process.env.SOUNDCLOUD_CLIENT_ID?.trim();
   const clientSecret = process.env.SOUNDCLOUD_CLIENT_SECRET?.trim();
   if (!clientId || !clientSecret) {
-    throw new Error("SOUNDCLOUD_CLIENT_ID and SOUNDCLOUD_CLIENT_SECRET are required");
+    throw new Error(
+      "SOUNDCLOUD_CLIENT_ID and SOUNDCLOUD_CLIENT_SECRET are required",
+    );
   }
 
   const body = new URLSearchParams({

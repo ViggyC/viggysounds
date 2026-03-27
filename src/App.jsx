@@ -256,6 +256,7 @@ export default function App() {
       })
       .then((data) => {
         if (cancelled) return;
+        console.log("[soundcloud/top-tracks] API response", data);
         const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
         setSoundcloudTop({
           status: tracks.length > 0 ? "ok" : "empty",
