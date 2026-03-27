@@ -6,5 +6,13 @@ export default defineConfig({
   plugins: [showPhotosScanPlugin(), react()],
   // Use relative paths so assets work on GitHub Pages project sites.
   base: './',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
 });
 

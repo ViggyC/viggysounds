@@ -4,6 +4,7 @@ import showPhotos from "./generated/showPhotos.json";
 import yaml from "js-yaml";
 import originalsYamlRaw from "./data/music/originals.yaml?raw";
 import remixesYamlRaw from "./data/music/remixes.yaml?raw";
+import { SOUNDCLOUD_EMBED_FALLBACK } from "./data/soundcloudTopTracks.js";
 
 function formatDate(dateStr) {
   // Expected: YYYY-MM-DD
@@ -82,6 +83,26 @@ function useMediaQuery(query) {
   return matches;
 }
 
+function soundcloudPlayerSrc(trackUrl) {
+  const q = new URLSearchParams({
+    url: trackUrl,
+    color: "#ff5500",
+    auto_play: "false",
+    hide_related: "true",
+    show_comments: "true",
+    show_playcount: "true",
+    show_user: "true",
+    show_teaser: "true",
+    visual: "true",
+  });
+  return `https://w.soundcloud.com/player/?${q.toString()}`;
+}
+
+function formatPlayCount(n) {
+  if (n == null || typeof n !== "number" || Number.isNaN(n)) return null;
+  return new Intl.NumberFormat(undefined).format(n);
+}
+
 function MusicLinksRow({ track: t }) {
   return (
     <div className="musicLinksRow">
@@ -117,10 +138,11 @@ function MusicLinksRow({ track: t }) {
 export default function App() {
   const [activeVideoId, setActiveVideoId] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
-  const [musicFilter, setMusicFilter] = useState("both"); // original | remix | both
+  const [musicFilter, setMusicFilter] = useState("both"); // original | remix | both | soundcloud
   /** Narrow viewports: compact music rows; expand for cover, description, links */
   const musicCompact = useMediaQuery("(max-width: 560px)");
   const [musicExpanded, setMusicExpanded] = useState({});
+  const [soundcloudPanelOpen, setSoundcloudPanelOpen] = useState(false);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
@@ -210,6 +232,64 @@ export default function App() {
     setMusicExpanded({});
   }, [musicFilter]);
 
+  useEffect(() => {
+    if (musicFilter === "soundcloud") {
+      setSoundcloudPanelOpen(true);
+    }
+  }, [musicFilter]);
+
+  const [soundcloudTop, setSoundcloudTop] = useState({
+    status: "loading",
+    tracks: [],
+  });
+
+  useEffect(() => {
+    const base = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+    const url = base
+      ? `${base}/api/soundcloud/top-tracks?limit=5`
+      : "/api/soundcloud/top-tracks?limit=5";
+    let cancelled = false;
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+        setSoundcloudTop({
+          status: tracks.length > 0 ? "ok" : "empty",
+          tracks,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setSoundcloudTop({ status: "error", tracks: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** API rows include playback_count; fallback list is URL-only */
+  const soundcloudEmbedItems = useMemo(() => {
+    if (soundcloudTop.status === "ok" && soundcloudTop.tracks.length > 0) {
+      return soundcloudTop.tracks
+        .map((t) => ({
+          url: t.permalink_url,
+          title: typeof t.title === "string" ? t.title : "",
+          playbackCount:
+            typeof t.playback_count === "number" ? t.playback_count : null,
+        }))
+        .filter((x) => x.url);
+    }
+    if (soundcloudTop.status === "loading") return [];
+    return SOUNDCLOUD_EMBED_FALLBACK.map((u) => ({
+      url: u,
+      title: "",
+      playbackCount: null,
+    }));
+  }, [soundcloudTop]);
+
   const originalsTracks = useMemo(
     () => parseMusicYaml(originalsYamlRaw, "original"),
     [],
@@ -223,7 +303,9 @@ export default function App() {
       ? originalsTracks
       : musicFilter === "remix"
         ? remixesTracks
-        : [...originalsTracks, ...remixesTracks];
+        : musicFilter === "soundcloud"
+          ? []
+          : [...originalsTracks, ...remixesTracks];
 
   const latestReleaseTrack = useMemo(() => {
     const dated = musicTracks
@@ -279,36 +361,39 @@ export default function App() {
             ))}
           </div>
 
-          <div className="socialRow" aria-label="Social links">
-            {EPK.socials.map((s) => (
-              <a
-                key={s.label}
-                className="socialChip"
-                href={s.href}
-                target={s.external ? "_blank" : undefined}
-                rel="noreferrer"
-                style={
-                  s.brandColor
-                    ? {
-                        borderColor: hexToRgba(s.brandColor, 0.38),
-                        background: hexToRgba(s.brandColor, 0.12),
-                      }
-                    : undefined
-                }
-              >
-                {s.brandColor ? (
-                  <span
-                    className="socialDot"
-                    style={{
-                      backgroundColor: s.brandColor,
-                      boxShadow: `0 0 0 6px ${hexToRgba(s.brandColor, 0.13)}`,
-                    }}
-                    aria-hidden="true"
-                  />
-                ) : null}
-                {s.label}
-              </a>
-            ))}
+          <div className="socialBlock">
+            <p className="socialCta">{EPK.socialCta}</p>
+            <div className="socialRow" aria-label="Social links">
+              {EPK.socials.map((s) => (
+                <a
+                  key={s.label}
+                  className="socialChip"
+                  href={s.href}
+                  target={s.external ? "_blank" : undefined}
+                  rel="noreferrer"
+                  style={
+                    s.brandColor
+                      ? {
+                          borderColor: hexToRgba(s.brandColor, 0.38),
+                          background: hexToRgba(s.brandColor, 0.12),
+                        }
+                      : undefined
+                  }
+                >
+                  {s.brandColor ? (
+                    <span
+                      className="socialDot"
+                      style={{
+                        backgroundColor: s.brandColor,
+                        boxShadow: `0 0 0 6px ${hexToRgba(s.brandColor, 0.13)}`,
+                      }}
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  {s.label}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </header>
@@ -324,6 +409,15 @@ export default function App() {
             role="tablist"
             aria-label="Music filters"
           >
+            <button
+              type="button"
+              className={`filterBtn ${musicFilter === "both" ? "filterBtnActive" : ""}`}
+              role="tab"
+              aria-selected={musicFilter === "both"}
+              onClick={() => setMusicFilter("both")}
+            >
+              All
+            </button>
             <button
               type="button"
               className={`filterBtn ${musicFilter === "original" ? "filterBtnActive" : ""}`}
@@ -344,16 +438,111 @@ export default function App() {
             </button>
             <button
               type="button"
-              className={`filterBtn ${musicFilter === "both" ? "filterBtnActive" : ""}`}
+              className={`filterBtn ${musicFilter === "soundcloud" ? "filterBtnActive" : ""}`}
               role="tab"
-              aria-selected={musicFilter === "both"}
-              onClick={() => setMusicFilter("both")}
+              aria-selected={musicFilter === "soundcloud"}
+              onClick={() => setMusicFilter("soundcloud")}
             >
-              All
+              SoundCloud
             </button>
           </div>
 
-          {latestReleaseTrack ? (
+          {musicFilter === "soundcloud" &&
+          (soundcloudTop.status === "loading" ||
+            soundcloudEmbedItems.length > 0) ? (
+            <div
+              className={`soundcloudPanel${soundcloudPanelOpen ? " soundcloudPanelOpen" : ""}`}
+            >
+              <button
+                type="button"
+                className="soundcloudPanelHeader"
+                id="soundcloud-panel-head"
+                aria-expanded={soundcloudPanelOpen}
+                aria-controls="soundcloud-panel-body"
+                onClick={() => setSoundcloudPanelOpen((o) => !o)}
+              >
+                <div className="soundcloudPanelHeaderText">
+                  <span className="soundcloudPanelTitle">Top tracks</span>
+                  {soundcloudTop.status === "loading" ? (
+                    <span className="soundcloudPanelMeta" role="status">
+                      Loading…
+                    </span>
+                  ) : soundcloudTop.status === "ok" ? (
+                    <span className="soundcloudPanelMeta">
+                      Top tracks by play count
+                    </span>
+                  ) : (
+                    <span className="soundcloudPanelMeta">Embeds</span>
+                  )}
+                  {soundcloudEmbedItems.length > 0 ? (
+                    <span className="soundcloudPanelCount">
+                      {soundcloudEmbedItems.length}{" "}
+                      {soundcloudEmbedItems.length === 1 ? "track" : "tracks"}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="soundcloudPanelChevron" aria-hidden="true">
+                  ▼
+                </span>
+              </button>
+
+              <div
+                id="soundcloud-panel-body"
+                className="soundcloudPanelBody"
+                role="region"
+                aria-labelledby="soundcloud-panel-head"
+                hidden={!soundcloudPanelOpen}
+              >
+                {soundcloudPanelOpen && soundcloudEmbedItems.length > 0 ? (
+                  <ul className="soundcloudWidgetList">
+                    {soundcloudEmbedItems.map((item, i) => (
+                      <li
+                        key={`${item.url}-${i}`}
+                        className="soundcloudWidgetItem"
+                      >
+                        {item.title || item.playbackCount != null ? (
+                          <div className="soundcloudWidgetTrackMeta">
+                            {item.title ? (
+                              <span className="soundcloudWidgetTrackTitle">
+                                {item.title}
+                              </span>
+                            ) : null}
+                            {formatPlayCount(item.playbackCount) != null ? (
+                              <span className="soundcloudWidgetPlays">
+                                {formatPlayCount(item.playbackCount)} plays
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        <iframe
+                          title={
+                            item.title
+                              ? `${item.title} (SoundCloud)`
+                              : `SoundCloud ${i + 1}`
+                          }
+                          className="soundcloudEmbed"
+                          width="100%"
+                          height="166"
+                          scrolling="no"
+                          frameBorder="no"
+                          allow="autoplay"
+                          src={soundcloudPlayerSrc(item.url)}
+                          loading="lazy"
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : soundcloudPanelOpen &&
+                  soundcloudTop.status === "loading" ? (
+                  <p className="soundcloudPanelBodyLoading" role="status">
+                    Loading players…
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {musicFilter !== "soundcloud" && latestReleaseTrack ? (
             <div
               className="musicLatestHighlight"
               role="region"
@@ -372,12 +561,16 @@ export default function App() {
                 ) : null}
                 <div className="musicLatestBody">
                   <div className="musicLatestBadge">Latest release</div>
-                  <h3 className="musicLatestTitle">{latestReleaseTrack.title}</h3>
+                  <h3 className="musicLatestTitle">
+                    {latestReleaseTrack.title}
+                  </h3>
                   <p className="musicLatestDate">
                     {formatDate(latestReleaseTrack.releaseDate)}
                   </p>
                   {latestReleaseTrack.description ? (
-                    <p className="musicLatestMeta">{latestReleaseTrack.description}</p>
+                    <p className="musicLatestMeta">
+                      {latestReleaseTrack.description}
+                    </p>
                   ) : null}
                   <div className="musicLatestFooter">
                     <div
@@ -394,6 +587,7 @@ export default function App() {
             </div>
           ) : null}
 
+          {musicFilter !== "soundcloud" ? (
           <div className="musicGrid" aria-label="Music list">
             {musicTracks.length === 0 ? (
               <div className="emptyState">
@@ -494,6 +688,7 @@ export default function App() {
               );
             })}
           </div>
+          ) : null}
         </section>
 
         <section className="section" id="shows-upcoming">

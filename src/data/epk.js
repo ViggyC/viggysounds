@@ -4,6 +4,8 @@ export const EPK = {
   // Use a relative path (no leading `/`) so it works on GitHub Pages project subpaths.
   logo: "media/art/VIGGY_NEW_LOGO.png",
   artistTagline: "Cinematic Bass Music",
+  /** Line above hero social icon buttons */
+  socialCta: "Follow me 👉🏾👈🏾",
   hero: {
     // Replace with your own background photo later (put it in `public/` if you want it local).
     backgroundImage: "media/photos/viggy_hero.jpg",

@@ -37,6 +37,8 @@ jobs:
           VITE_BUILD_VERSION: ${{ github.run_number }}
           VITE_BUILD_SHA: ${{ github.sha }}
           VITE_BUILD_BRANCH: ${{ github.ref_name }}
+          # Set in repo Settings → Secrets → Actions (e.g. https://your-api.fly.dev)
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
         run: npm run build
 
       - name: Upload artifact

@@ -6,3 +6,6 @@ dist
 .env.local
 .env.*.local
 
+# SoundCloud user OAuth (access + refresh) — server/lib persists here
+server/.soundcloud-user-tokens.json
+
