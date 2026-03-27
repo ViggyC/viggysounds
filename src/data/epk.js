@@ -1,5 +1,5 @@
 export const EPK = {
-  artistName: "VIGGYTunes",
+  artistName: "VIGGYtunes",
   // Logo to show in the hero. Upload your file to `public/media/cover-art/` and update this path if needed.
   // Use a relative path (no leading `/`) so it works on GitHub Pages project subpaths.
   logo: "media/art/VIGGY_NEW_LOGO.png",
@@ -78,7 +78,7 @@ export const EPK = {
     { label: "YouTube", href: "#youtube" },
   ],
   contact: {
-    email: "booking@viggysounds.com",
+    email: "viggysounds@gmail.com",
     label: "Booking / Collabs",
   },
 };

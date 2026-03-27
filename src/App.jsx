@@ -397,6 +397,8 @@ export default function App() {
           <div className="sectionHeader">
             <h2>Media</h2>
           </div>
+          <h5>Click on a photo to expand</h5>
+
           <div className="mediaGrid">
             {(showPhotos || []).map((p, idx) => (
               <button
