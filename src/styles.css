@@ -457,6 +457,225 @@ a {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.musicLatestHighlight {
+  margin-bottom: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.14),
+    rgba(34, 211, 238, 0.08)
+  );
+  padding: 16px 18px;
+}
+
+.musicLatestHighlightInner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.musicLatestCoverWrap {
+  flex: 0 0 auto;
+  width: min(140px, 36vw);
+}
+
+.musicLatestCover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.musicLatestBody {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.musicLatestBadge {
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.musicLatestTitle {
+  margin: 0;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.musicLatestDate {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.musicLatestMeta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.musicLatestFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: 8px;
+}
+
+.musicLatestFooter .musicLinksRow {
+  margin-top: 0;
+}
+
+.musicCardLatest {
+  border-color: rgba(124, 58, 237, 0.45);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.12);
+}
+
+/* Desktop: full card; summary row hidden */
+.musicCardSummary {
+  display: none;
+}
+
+.musicCardExpand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Author `display: flex` wins over the default [hidden] UA rule — restore hide */
+.musicCardExpand[hidden] {
+  display: none !important;
+}
+
+.musicCardExpandDesktopOnly {
+  display: flex;
+}
+
+@media (max-width: 560px) {
+  .musicCard {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .musicCardCollapsed {
+    gap: 0;
+  }
+
+  .musicCardExpanded {
+    gap: 10px;
+    padding: 12px 12px;
+  }
+
+  .musicCardSummary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+    padding: 6px 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.12);
+    touch-action: manipulation;
+  }
+
+  .musicCardSummary:focus-visible {
+    outline: 2px solid rgba(124, 58, 237, 0.65);
+    outline-offset: 2px;
+  }
+
+  .musicCardThumb {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .musicCardThumbPlaceholder {
+    background: linear-gradient(
+      135deg,
+      rgba(124, 58, 237, 0.2),
+      rgba(34, 211, 238, 0.12)
+    );
+  }
+
+  .musicCardSummaryMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .musicCardSummary .musicTitle {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.98rem;
+  }
+
+  .musicCardSummary .musicTypePill {
+    align-self: flex-start;
+  }
+
+  .musicCardChevron {
+    flex-shrink: 0;
+    display: inline-block;
+    font-size: 9px;
+    line-height: 1;
+    margin-inline-start: auto;
+    opacity: 0.55;
+    transition: transform 0.2s ease;
+  }
+
+  .musicCardCollapsed .musicCardChevron {
+    transform: rotate(-90deg);
+  }
+
+  .musicCardExpandDesktopOnly {
+    display: none;
+  }
+
+  .musicCardExpand .musicLinksRow {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 561px) {
+  .musicCard {
+    min-height: 160px;
+  }
+
+  .musicCardExpand {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
 .emptyState {
   grid-column: 1/-1;
   border-radius: 18px;

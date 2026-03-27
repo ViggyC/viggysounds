@@ -1,21 +1,26 @@
+# Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
 category: remix
 tracks:
   - title: "Lights Go Out x Sicko Mode (VIGGY FLIP) "
+    releaseDate: "2026-02-19"
     soundcloud: "https://open.spotify.com/"
     coverArt: "media/cover-art/LGO.png"
     description: "I win"
 
   - title: "Tove Lo - Habits (VIGGY FLIP)"
+    releaseDate: "2026-02-07"
     soundcloud: "https://soundcloud.com/viggysounds/tove-lo-habits-viggy-flip"
     coverArt: "media/cover-art/stayhi.png"
     description: "Ruined a classic"
 
   - title: "1nonly - Mine (VIGGY FLIP)"
+    releaseDate: "2025-12-11"
     soundcloud: "https://soundcloud.com/viggysounds/mine-1nonly-viggy-flip"
     coverArt: "media/cover-art/mine.png"
     description: "Grunge Step"
 
   - title: "Keys N Krates - Dum Dee Dum (VIGGY Flip)"
+    releaseDate: "2025-04-24"
     soundcloud: "https://soundcloud.com/viggysounds/keysnkrates-dumdeedum-viggy-flip"
     coverArt: "media/cover-art/dum_dee_dum.png"
     description: "Dum Dee Dubstep"

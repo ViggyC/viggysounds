@@ -62,10 +62,65 @@ function parseMusicYaml(raw, fallbackCategory) {
   }
 }
 
+/** `releaseDate` from YAML as YYYY-MM-DD */
+function parseTrackReleaseDate(raw) {
+  if (raw == null || raw === "") return null;
+  const s = String(raw).trim();
+  const dt = new Date(`${s}T00:00:00`);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const sync = () => setMatches(mql.matches);
+    sync();
+    mql.addEventListener("change", sync);
+    return () => mql.removeEventListener("change", sync);
+  }, [query]);
+  return matches;
+}
+
+function MusicLinksRow({ track: t }) {
+  return (
+    <div className="musicLinksRow">
+      {t.url ? (
+        <a className="musicChip" href={t.url} target="_blank" rel="noreferrer">
+          Listen
+        </a>
+      ) : null}
+      {t.spotify ? (
+        <a
+          className="musicChip"
+          href={t.spotify}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Spotify
+        </a>
+      ) : null}
+      {t.soundcloud ? (
+        <a
+          className="musicChip"
+          href={t.soundcloud}
+          target="_blank"
+          rel="noreferrer"
+        >
+          SoundCloud
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
 export default function App() {
   const [activeVideoId, setActiveVideoId] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [musicFilter, setMusicFilter] = useState("both"); // original | remix | both
+  /** Narrow viewports: compact music rows; expand for cover, description, links */
+  const musicCompact = useMediaQuery("(max-width: 560px)");
+  const [musicExpanded, setMusicExpanded] = useState({});
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
@@ -151,6 +206,10 @@ export default function App() {
   const activeVideo =
     activeVideoId && EPK.youtubeVideos.find((v) => v.videoId === activeVideoId);
 
+  useEffect(() => {
+    setMusicExpanded({});
+  }, [musicFilter]);
+
   const originalsTracks = useMemo(
     () => parseMusicYaml(originalsYamlRaw, "original"),
     [],
@@ -165,6 +224,20 @@ export default function App() {
       : musicFilter === "remix"
         ? remixesTracks
         : [...originalsTracks, ...remixesTracks];
+
+  const latestReleaseTrack = useMemo(() => {
+    const dated = musicTracks
+      .map((t) => ({ t, d: parseTrackReleaseDate(t.releaseDate) }))
+      .filter((x) => x.d != null);
+    if (dated.length === 0) return null;
+    dated.sort((a, b) => b.d - a.d);
+    return dated[0].t;
+  }, [musicTracks]);
+
+  const latestReleaseKey = latestReleaseTrack
+    ? `${latestReleaseTrack.type}-${latestReleaseTrack.title}-${latestReleaseTrack.releaseDate}`
+    : null;
+
   const buildVersion = import.meta.env.VITE_BUILD_VERSION || "local";
   const buildSha = import.meta.env.VITE_BUILD_SHA
     ? String(import.meta.env.VITE_BUILD_SHA).slice(0, 7)
@@ -280,6 +353,47 @@ export default function App() {
             </button>
           </div>
 
+          {latestReleaseTrack ? (
+            <div
+              className="musicLatestHighlight"
+              role="region"
+              aria-label="Latest release"
+            >
+              <div className="musicLatestHighlightInner">
+                {latestReleaseTrack.coverArt ? (
+                  <div className="musicLatestCoverWrap">
+                    <img
+                      className="musicLatestCover"
+                      src={latestReleaseTrack.coverArt}
+                      alt=""
+                      loading="lazy"
+                    />
+                  </div>
+                ) : null}
+                <div className="musicLatestBody">
+                  <div className="musicLatestBadge">Latest release</div>
+                  <h3 className="musicLatestTitle">{latestReleaseTrack.title}</h3>
+                  <p className="musicLatestDate">
+                    {formatDate(latestReleaseTrack.releaseDate)}
+                  </p>
+                  {latestReleaseTrack.description ? (
+                    <p className="musicLatestMeta">{latestReleaseTrack.description}</p>
+                  ) : null}
+                  <div className="musicLatestFooter">
+                    <div
+                      className={`musicTypePill ${latestReleaseTrack.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
+                    >
+                      {latestReleaseTrack.type === "original"
+                        ? "Original"
+                        : "Remix"}
+                    </div>
+                    <MusicLinksRow track={latestReleaseTrack} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="musicGrid" aria-label="Music list">
             {musicTracks.length === 0 ? (
               <div className="emptyState">
@@ -287,64 +401,98 @@ export default function App() {
               </div>
             ) : null}
 
-            {musicTracks.map((t, idx) => (
-              <div
-                key={`${t.type || "track"}-${t.title}-${idx}`}
-                className="musicCard"
-              >
-                <div className="musicCardTop">
-                  <div className="musicTitle">{t.title}</div>
-                  <div
-                    className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
+            {musicTracks.map((t, idx) => {
+              const key = `${t.type || "track"}-${t.title}-${idx}`;
+              const isLatest =
+                latestReleaseKey &&
+                `${t.type}-${t.title}-${t.releaseDate}` === latestReleaseKey;
+              const expandId = `music-expand-${musicFilter}-${idx}`;
+              const headingId = `music-h-${musicFilter}-${idx}`;
+              const isExpanded = !musicCompact || !!musicExpanded[key];
+              const toggleCard = () => {
+                if (!musicCompact) return;
+                setMusicExpanded((prev) => ({
+                  ...prev,
+                  [key]: !prev[key],
+                }));
+              };
+
+              return (
+                <div
+                  key={key}
+                  className={`musicCard${isLatest ? " musicCardLatest" : ""}${
+                    musicCompact
+                      ? isExpanded
+                        ? " musicCardExpanded"
+                        : " musicCardCollapsed"
+                      : ""
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className="musicCardSummary"
+                    id={headingId}
+                    aria-expanded={musicCompact ? isExpanded : true}
+                    aria-controls={expandId}
+                    onClick={toggleCard}
                   >
-                    {t.type === "original" ? "Original" : "Remix"}
+                    {t.coverArt ? (
+                      <img
+                        className="musicCardThumb"
+                        src={t.coverArt}
+                        alt=""
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="musicCardThumb musicCardThumbPlaceholder"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <div className="musicCardSummaryMain">
+                      <div className="musicTitle">{t.title}</div>
+                      <div
+                        className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
+                      >
+                        {t.type === "original" ? "Original" : "Remix"}
+                      </div>
+                    </div>
+                    <span className="musicCardChevron" aria-hidden="true">
+                      ▼
+                    </span>
+                  </button>
+
+                  <div
+                    id={expandId}
+                    className="musicCardExpand"
+                    role="region"
+                    aria-labelledby={headingId}
+                    hidden={musicCompact && !isExpanded}
+                  >
+                    <div className="musicCardTop musicCardExpandDesktopOnly">
+                      <div className="musicTitle">{t.title}</div>
+                      <div
+                        className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
+                      >
+                        {t.type === "original" ? "Original" : "Remix"}
+                      </div>
+                    </div>
+                    {t.coverArt ? (
+                      <img
+                        className="musicCoverImg"
+                        src={t.coverArt}
+                        alt={`${t.title} cover art`}
+                        loading="lazy"
+                      />
+                    ) : null}
+                    {t.description ? (
+                      <div className="musicMeta">{t.description}</div>
+                    ) : null}
+                    <MusicLinksRow track={t} />
                   </div>
                 </div>
-                {t.coverArt ? (
-                  <img
-                    className="musicCoverImg"
-                    src={t.coverArt}
-                    alt={`${t.title} cover art`}
-                    loading="lazy"
-                  />
-                ) : null}
-                {t.description ? (
-                  <div className="musicMeta">{t.description}</div>
-                ) : null}
-                <div className="musicLinksRow">
-                  {t.url ? (
-                    <a
-                      className="musicChip"
-                      href={t.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Listen
-                    </a>
-                  ) : null}
-                  {t.spotify ? (
-                    <a
-                      className="musicChip"
-                      href={t.spotify}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Spotify
-                    </a>
-                  ) : null}
-                  {t.soundcloud ? (
-                    <a
-                      className="musicChip"
-                      href={t.soundcloud}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      SoundCloud
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
