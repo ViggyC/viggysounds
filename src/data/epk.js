@@ -84,8 +84,3 @@ export const EPK = {
     label: "Booking / Collabs",
   },
 };
-
-/** POST JSON { name, email, message } — override with VITE_CONTACT_API_URL in .env */
-export const CONTACT_FORM_URL =
-  import.meta.env.VITE_CONTACT_API_URL ??
-  "https://vigneshchandrasekhar.fly.dev/send_mail";

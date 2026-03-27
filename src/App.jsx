@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { CONTACT_FORM_URL, EPK } from "./data/epk.js";
+import { EPK } from "./data/epk.js";
 import showPhotos from "./generated/showPhotos.json";
 import yaml from "js-yaml";
 import originalsYamlRaw from "./data/music/originals.yaml?raw";
@@ -161,7 +161,7 @@ export default function App() {
     setContactErrorText("");
     setContactStatus("sending");
     try {
-      const res = await fetch(CONTACT_FORM_URL, {
+      const res = await fetch(import.meta.env.VITE_CONTACT_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -589,106 +589,106 @@ export default function App() {
           ) : null}
 
           {musicFilter !== "soundcloud" ? (
-          <div className="musicGrid" aria-label="Music list">
-            {musicTracks.length === 0 ? (
-              <div className="emptyState">
-                No music entries yet. Add tracks in the YAML files.
-              </div>
-            ) : null}
-
-            {musicTracks.map((t, idx) => {
-              const key = `${t.type || "track"}-${t.title}-${idx}`;
-              const isLatest =
-                latestReleaseKey &&
-                `${t.type}-${t.title}-${t.releaseDate}` === latestReleaseKey;
-              const expandId = `music-expand-${musicFilter}-${idx}`;
-              const headingId = `music-h-${musicFilter}-${idx}`;
-              const isExpanded = !musicCompact || !!musicExpanded[key];
-              const toggleCard = () => {
-                if (!musicCompact) return;
-                setMusicExpanded((prev) => ({
-                  ...prev,
-                  [key]: !prev[key],
-                }));
-              };
-
-              return (
-                <div
-                  key={key}
-                  className={`musicCard${isLatest ? " musicCardLatest" : ""}${
-                    musicCompact
-                      ? isExpanded
-                        ? " musicCardExpanded"
-                        : " musicCardCollapsed"
-                      : ""
-                  }`}
-                >
-                  <button
-                    type="button"
-                    className="musicCardSummary"
-                    id={headingId}
-                    aria-expanded={musicCompact ? isExpanded : true}
-                    aria-controls={expandId}
-                    onClick={toggleCard}
-                  >
-                    {t.coverArt ? (
-                      <img
-                        className="musicCardThumb"
-                        src={t.coverArt}
-                        alt=""
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div
-                        className="musicCardThumb musicCardThumbPlaceholder"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <div className="musicCardSummaryMain">
-                      <div className="musicTitle">{t.title}</div>
-                      <div
-                        className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
-                      >
-                        {t.type === "original" ? "Original" : "Remix"}
-                      </div>
-                    </div>
-                    <span className="musicCardChevron" aria-hidden="true">
-                      ▼
-                    </span>
-                  </button>
-
-                  <div
-                    id={expandId}
-                    className="musicCardExpand"
-                    role="region"
-                    aria-labelledby={headingId}
-                    hidden={musicCompact && !isExpanded}
-                  >
-                    <div className="musicCardTop musicCardExpandDesktopOnly">
-                      <div className="musicTitle">{t.title}</div>
-                      <div
-                        className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
-                      >
-                        {t.type === "original" ? "Original" : "Remix"}
-                      </div>
-                    </div>
-                    {t.coverArt ? (
-                      <img
-                        className="musicCoverImg"
-                        src={t.coverArt}
-                        alt={`${t.title} cover art`}
-                        loading="lazy"
-                      />
-                    ) : null}
-                    {t.description ? (
-                      <div className="musicMeta">{t.description}</div>
-                    ) : null}
-                    <MusicLinksRow track={t} />
-                  </div>
+            <div className="musicGrid" aria-label="Music list">
+              {musicTracks.length === 0 ? (
+                <div className="emptyState">
+                  No music entries yet. Add tracks in the YAML files.
                 </div>
-              );
-            })}
-          </div>
+              ) : null}
+
+              {musicTracks.map((t, idx) => {
+                const key = `${t.type || "track"}-${t.title}-${idx}`;
+                const isLatest =
+                  latestReleaseKey &&
+                  `${t.type}-${t.title}-${t.releaseDate}` === latestReleaseKey;
+                const expandId = `music-expand-${musicFilter}-${idx}`;
+                const headingId = `music-h-${musicFilter}-${idx}`;
+                const isExpanded = !musicCompact || !!musicExpanded[key];
+                const toggleCard = () => {
+                  if (!musicCompact) return;
+                  setMusicExpanded((prev) => ({
+                    ...prev,
+                    [key]: !prev[key],
+                  }));
+                };
+
+                return (
+                  <div
+                    key={key}
+                    className={`musicCard${isLatest ? " musicCardLatest" : ""}${
+                      musicCompact
+                        ? isExpanded
+                          ? " musicCardExpanded"
+                          : " musicCardCollapsed"
+                        : ""
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      className="musicCardSummary"
+                      id={headingId}
+                      aria-expanded={musicCompact ? isExpanded : true}
+                      aria-controls={expandId}
+                      onClick={toggleCard}
+                    >
+                      {t.coverArt ? (
+                        <img
+                          className="musicCardThumb"
+                          src={t.coverArt}
+                          alt=""
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div
+                          className="musicCardThumb musicCardThumbPlaceholder"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <div className="musicCardSummaryMain">
+                        <div className="musicTitle">{t.title}</div>
+                        <div
+                          className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
+                        >
+                          {t.type === "original" ? "Original" : "Remix"}
+                        </div>
+                      </div>
+                      <span className="musicCardChevron" aria-hidden="true">
+                        ▼
+                      </span>
+                    </button>
+
+                    <div
+                      id={expandId}
+                      className="musicCardExpand"
+                      role="region"
+                      aria-labelledby={headingId}
+                      hidden={musicCompact && !isExpanded}
+                    >
+                      <div className="musicCardTop musicCardExpandDesktopOnly">
+                        <div className="musicTitle">{t.title}</div>
+                        <div
+                          className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
+                        >
+                          {t.type === "original" ? "Original" : "Remix"}
+                        </div>
+                      </div>
+                      {t.coverArt ? (
+                        <img
+                          className="musicCoverImg"
+                          src={t.coverArt}
+                          alt={`${t.title} cover art`}
+                          loading="lazy"
+                        />
+                      ) : null}
+                      {t.description ? (
+                        <div className="musicMeta">{t.description}</div>
+                      ) : null}
+                      <MusicLinksRow track={t} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : null}
         </section>
 
