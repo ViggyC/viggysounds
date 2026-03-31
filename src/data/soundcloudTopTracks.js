@@ -1,6 +1,7 @@
 /**
  * Fallback embed URLs when the API is offline or not configured (e.g. static GitHub Pages).
- * Primary list comes from GET /api/soundcloud/top-tracks (sorted by play count).
+ * Primary list comes from GET /api/soundcloud/top-tracks (plays).
+ * Recent public uploads: GET /api/soundcloud/recent-tracks.
  */
 export const SOUNDCLOUD_EMBED_FALLBACK = [
   "https://soundcloud.com/browneedub/energy",

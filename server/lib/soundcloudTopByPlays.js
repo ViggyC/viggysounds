@@ -1,5 +1,6 @@
 /**
- * Load all uploads for the authenticated user (/me/tracks), sort by playback_count.
+ * Load all uploads for the authenticated user (/me/tracks).
+ * "Recent" lists: public `sharing` + valid `created_at` only, sorted newest first.
  */
 
 import { soundcloudGetUser } from "./soundcloud.js";
@@ -56,6 +57,59 @@ function permalinkForWidget(track) {
     return track.uri;
   }
   return null;
+}
+
+/**
+ * Recent list: only tracks that are publicly visible on SoundCloud.
+ * `sharing` must be explicitly `"public"` (not `"private"`, not missing).
+ */
+function isPublicTrack(t) {
+  if (!t || typeof t !== "object") return false;
+  const s = String(t.sharing || "").toLowerCase();
+  if (s === "private") return false;
+  return s === "public";
+}
+
+/**
+ * Parse `created_at` for sorting/filtering. SoundCloud uses ISO or legacy "2011/06/02 13:44:54 +0000".
+ * @returns {number | null} epoch ms, or null if missing / invalid
+ */
+function createdAtMs(t) {
+  const raw = t?.created_at;
+  if (typeof raw !== "string" || raw.trim() === "") return null;
+  let s = raw.trim();
+  if (/^\d{4}\/\d{2}\/\d{2}/.test(s)) {
+    s = s.replace(/\//g, "-");
+  }
+  const ms = Date.parse(s);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+/**
+ * Public tracks with a valid `created_at`, newest first (used by GET /api/soundcloud/recent-tracks).
+ * @param {unknown[]} tracks
+ * @param {number} limit
+ * @returns {{ title: string, permalink_url: string, playback_count: number | null, created_at: string | null }[]}
+ */
+export function recentPublicTracks(tracks, limit) {
+  const candidates = [...tracks]
+    .filter((t) => isPublicTrack(t) && createdAtMs(t) != null)
+    .sort((a, b) => createdAtMs(b) - createdAtMs(a));
+
+  const out = [];
+  for (const t of candidates) {
+    if (out.length >= limit) break;
+    const url = permalinkForWidget(t);
+    if (!url) continue;
+    out.push({
+      title: typeof t?.title === "string" ? t.title : "",
+      permalink_url: url,
+      playback_count:
+        typeof t?.playback_count === "number" ? t.playback_count : null,
+      created_at: typeof t?.created_at === "string" ? t.created_at : null,
+    });
+  }
+  return out;
 }
 
 /**

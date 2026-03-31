@@ -475,6 +475,39 @@ a {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.musicChipSpotify {
+  background: rgba(29, 185, 84, 0.2);
+  border-color: rgba(29, 185, 84, 0.55);
+  color: #d8f5e4;
+}
+
+.musicChipSpotify:hover {
+  background: rgba(29, 185, 84, 0.32);
+  border-color: rgba(29, 185, 84, 0.75);
+}
+
+.musicChipSoundcloud {
+  background: rgba(255, 85, 0, 0.16);
+  border-color: rgba(255, 85, 0, 0.5);
+  color: #ffe8d4;
+}
+
+.musicChipSoundcloud:hover {
+  background: rgba(255, 85, 0, 0.26);
+  border-color: rgba(255, 85, 0, 0.7);
+}
+
+.musicChipPresave {
+  background: rgba(124, 58, 237, 0.22);
+  border-color: rgba(167, 139, 250, 0.45);
+  color: #f3e8ff;
+}
+
+.musicChipPresave:hover {
+  background: rgba(124, 58, 237, 0.32);
+  border-color: rgba(196, 181, 253, 0.6);
+}
+
 .soundcloudPanel {
   margin-bottom: 18px;
   max-width: 720px;
@@ -549,6 +582,46 @@ a {
 
 .soundcloudPanelOpen .soundcloudPanelChevron {
   transform: rotate(180deg);
+}
+
+.soundcloudSubTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 14px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.soundcloudSubTab {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 850;
+  font-size: 0.88rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(245, 246, 255, 0.88);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.soundcloudSubTab:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.soundcloudSubTab:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.65);
+  outline-offset: 2px;
+}
+
+.soundcloudSubTabActive {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.12);
+  color: #f0fdff;
 }
 
 .soundcloudPanelBody {

@@ -23,6 +23,7 @@ import {
 } from "./lib/soundcloudUserTokens.js";
 import {
   fetchAllMeTracks,
+  recentPublicTracks,
   topTracksByPlayback,
 } from "./lib/soundcloudTopByPlays.js";
 
@@ -183,10 +184,11 @@ app.get("/api/spotify/search", async (req, res) => {
 
 /**
  * SoundCloud: GET /api/soundcloud/top-tracks?limit=5
- * Authenticated user's uploads, sorted by playback_count (highest first).
+ * Authenticated user's uploads, highest playback_count first.
  * Returns permalink URLs for embed widgets — requires user OAuth (token file).
  */
 app.get("/api/soundcloud/top-tracks", async (req, res) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate");
   if (!soundcloudUserConfigured()) {
     const body = {
       error:
@@ -206,6 +208,41 @@ app.get("/api/soundcloud/top-tracks", async (req, res) => {
     const tracks = topTracksByPlayback(all, limit);
     const payload = { ok: true, tracks };
     console.log("[GET /api/soundcloud/top-tracks] response", payload);
+    res.json(payload);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: err instanceof Error ? err.message : "Failed to load tracks",
+      tracks: [],
+    });
+  }
+});
+
+/**
+ * SoundCloud: GET /api/soundcloud/recent-tracks?limit=5
+ * Public uploads only (`sharing` === "public"), valid `created_at`, newest first.
+ */
+app.get("/api/soundcloud/recent-tracks", async (req, res) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  if (!soundcloudUserConfigured()) {
+    const body = {
+      error:
+        "SoundCloud user not connected. Open GET /api/soundcloud/auth/start once.",
+      tracks: [],
+    };
+    console.warn("[GET /api/soundcloud/recent-tracks] 503", body);
+    res.status(503).json(body);
+    return;
+  }
+  const limit = Math.min(
+    50,
+    Math.max(1, Number.parseInt(String(req.query.limit || "5"), 10) || 5),
+  );
+  try {
+    const all = await fetchAllMeTracks();
+    const tracks = recentPublicTracks(all, limit);
+    const payload = { ok: true, tracks };
+    console.log("[GET /api/soundcloud/recent-tracks] response", payload);
     res.json(payload);
   } catch (err) {
     console.error(err);

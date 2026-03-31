@@ -103,28 +103,83 @@ function formatPlayCount(n) {
   return new Intl.NumberFormat(undefined).format(n);
 }
 
+/** SoundCloud API `created_at` ISO string → short display date */
+function formatSoundcloudCreatedAt(iso) {
+  if (iso == null || typeof iso !== "string") return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+}
+
+/** True if YAML has a valid http(s) URL (excludes placeholders like "NA"). */
+function isValidStreamingUrl(s) {
+  if (s == null || typeof s !== "string") return false;
+  const u = s.trim();
+  if (!u || /^na$/i.test(u)) return false;
+  return /^https?:\/\//i.test(u);
+}
+
+/** True when releaseDate is set and strictly after local today (not yet released). */
+function isTrackReleaseUpcoming(t) {
+  const d = parseTrackReleaseDate(t.releaseDate);
+  if (!d) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const release = new Date(d);
+  release.setHours(0, 0, 0, 0);
+  return release > today;
+}
+
 function MusicLinksRow({ track: t }) {
+  const upcoming = isTrackReleaseUpcoming(t);
+  const presaveUrl =
+    typeof t.presave === "string" && isValidStreamingUrl(t.presave)
+      ? t.presave.trim()
+      : null;
+
+  if (upcoming) {
+    if (!presaveUrl) {
+      return <div className="musicLinksRow" />;
+    }
+    return (
+      <div className="musicLinksRow">
+        <a
+          className="musicChip musicChipPresave"
+          href={presaveUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Pre-save
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="musicLinksRow">
-      {t.url ? (
+      {t.url && isValidStreamingUrl(t.url) ? (
         <a className="musicChip" href={t.url} target="_blank" rel="noreferrer">
           Listen
         </a>
       ) : null}
-      {t.spotify ? (
+      {isValidStreamingUrl(t.spotify) ? (
         <a
-          className="musicChip"
-          href={t.spotify}
+          className="musicChip musicChipSpotify"
+          href={t.spotify.trim()}
           target="_blank"
           rel="noreferrer"
         >
           Spotify
         </a>
       ) : null}
-      {t.soundcloud ? (
+      {isValidStreamingUrl(t.soundcloud) ? (
         <a
-          className="musicChip"
-          href={t.soundcloud}
+          className="musicChip musicChipSoundcloud"
+          href={t.soundcloud.trim()}
           target="_blank"
           rel="noreferrer"
         >
@@ -148,6 +203,8 @@ export default function App() {
   );
   const [musicExpanded, setMusicExpanded] = useState({});
   const [soundcloudPanelOpen, setSoundcloudPanelOpen] = useState(false);
+  /** SoundCloud list mode: top by plays vs newest public uploads */
+  const [soundcloudListTab, setSoundcloudListTab] = useState("plays");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
@@ -267,58 +324,76 @@ export default function App() {
     }
   }, [musicFilter]);
 
-  const [soundcloudTop, setSoundcloudTop] = useState({
+  const [soundcloudPlays, setSoundcloudPlays] = useState({
+    status: "loading",
+    tracks: [],
+  });
+  const [soundcloudRecent, setSoundcloudRecent] = useState({
     status: "loading",
     tracks: [],
   });
 
   useEffect(() => {
     const base = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-    const url = base
+    const playsUrl = base
       ? `${base}/api/soundcloud/top-tracks?limit=5`
       : "/api/soundcloud/top-tracks?limit=5";
+    const recentUrl = base
+      ? `${base}/api/soundcloud/recent-tracks?limit=5`
+      : "/api/soundcloud/recent-tracks?limit=5";
     let cancelled = false;
-    fetch(url)
-      .then((r) => {
-        if (!r.ok) throw new Error(String(r.status));
-        return r.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        console.log("[soundcloud/top-tracks] API response", data);
-        const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
-        setSoundcloudTop({
-          status: tracks.length > 0 ? "ok" : "empty",
-          tracks,
+    const load = (url, set) => {
+      fetch(url, { cache: "no-store" })
+        .then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.json();
+        })
+        .then((data) => {
+          if (cancelled) return;
+          const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+          set({
+            status: tracks.length > 0 ? "ok" : "empty",
+            tracks,
+          });
+        })
+        .catch(() => {
+          if (!cancelled) set({ status: "error", tracks: [] });
         });
-      })
-      .catch(() => {
-        if (!cancelled) setSoundcloudTop({ status: "error", tracks: [] });
-      });
+    };
+    load(playsUrl, setSoundcloudPlays);
+    load(recentUrl, setSoundcloudRecent);
     return () => {
       cancelled = true;
     };
   }, []);
 
-  /** API rows include playback_count; fallback list is URL-only */
+  /** API rows: playback_count and/or created_at; fallback on plays-only when API fails */
   const soundcloudEmbedItems = useMemo(() => {
-    if (soundcloudTop.status === "ok" && soundcloudTop.tracks.length > 0) {
-      return soundcloudTop.tracks
+    const src =
+      soundcloudListTab === "plays" ? soundcloudPlays : soundcloudRecent;
+    if (src.status === "ok" && src.tracks.length > 0) {
+      return src.tracks
         .map((t) => ({
           url: t.permalink_url,
           title: typeof t.title === "string" ? t.title : "",
           playbackCount:
             typeof t.playback_count === "number" ? t.playback_count : null,
+          createdAt:
+            typeof t.created_at === "string" ? t.created_at : null,
         }))
         .filter((x) => x.url);
     }
-    if (soundcloudTop.status === "loading") return [];
-    return SOUNDCLOUD_EMBED_FALLBACK.map((u) => ({
-      url: u,
-      title: "",
-      playbackCount: null,
-    }));
-  }, [soundcloudTop]);
+    if (src.status === "loading") return [];
+    if (soundcloudListTab === "plays" && src.status === "error") {
+      return SOUNDCLOUD_EMBED_FALLBACK.map((u) => ({
+        url: u,
+        title: "",
+        playbackCount: null,
+        createdAt: null,
+      }));
+    }
+    return [];
+  }, [soundcloudListTab, soundcloudPlays, soundcloudRecent]);
 
   const originalsTracks = useMemo(
     () => parseMusicYaml(originalsYamlRaw, "original"),
@@ -478,8 +553,12 @@ export default function App() {
           </div>
 
           {musicFilter === "soundcloud" &&
-          (soundcloudTop.status === "loading" ||
-            soundcloudEmbedItems.length > 0) ? (
+          (soundcloudPlays.status === "loading" ||
+            soundcloudRecent.status === "loading" ||
+            soundcloudPlays.tracks.length > 0 ||
+            soundcloudRecent.tracks.length > 0 ||
+            soundcloudPlays.status === "error" ||
+            soundcloudRecent.status === "error") ? (
             <div
               className={`soundcloudPanel${soundcloudPanelOpen ? " soundcloudPanelOpen" : ""}`}
             >
@@ -492,18 +571,45 @@ export default function App() {
                 onClick={() => setSoundcloudPanelOpen((o) => !o)}
               >
                 <div className="soundcloudPanelHeaderText">
-                  <span className="soundcloudPanelTitle">Top tracks</span>
-                  {soundcloudTop.status === "loading" ? (
-                    <span className="soundcloudPanelMeta" role="status">
-                      Loading…
-                    </span>
-                  ) : soundcloudTop.status === "ok" ? (
-                    <span className="soundcloudPanelMeta">
-                      Top tracks by play count
-                    </span>
-                  ) : (
-                    <span className="soundcloudPanelMeta">Embeds</span>
-                  )}
+                  <span className="soundcloudPanelTitle">SoundCloud</span>
+                  {(() => {
+                    const src =
+                      soundcloudListTab === "plays"
+                        ? soundcloudPlays
+                        : soundcloudRecent;
+                    if (src.status === "loading") {
+                      return (
+                        <span className="soundcloudPanelMeta" role="status">
+                          Loading…
+                        </span>
+                      );
+                    }
+                    if (src.status === "ok") {
+                      return (
+                        <span className="soundcloudPanelMeta">
+                          {soundcloudListTab === "plays"
+                            ? "Top tracks by play count"
+                            : "Most recent public uploads"}
+                        </span>
+                      );
+                    }
+                    if (src.status === "error") {
+                      return (
+                        <span className="soundcloudPanelMeta">
+                          {soundcloudListTab === "plays"
+                            ? "Could not load — showing fallbacks"
+                            : "Could not load recent tracks"}
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="soundcloudPanelMeta">
+                        {soundcloudListTab === "plays"
+                          ? "No play data yet"
+                          : "No public tracks yet"}
+                      </span>
+                    );
+                  })()}
                   {soundcloudEmbedItems.length > 0 ? (
                     <span className="soundcloudPanelCount">
                       {soundcloudEmbedItems.length}{" "}
@@ -517,6 +623,31 @@ export default function App() {
               </button>
 
               <div
+                className="soundcloudSubTabs"
+                role="tablist"
+                aria-label="SoundCloud track lists"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={soundcloudListTab === "plays"}
+                  className={`soundcloudSubTab${soundcloudListTab === "plays" ? " soundcloudSubTabActive" : ""}`}
+                  onClick={() => setSoundcloudListTab("plays")}
+                >
+                  Top by plays
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={soundcloudListTab === "recent"}
+                  className={`soundcloudSubTab${soundcloudListTab === "recent" ? " soundcloudSubTabActive" : ""}`}
+                  onClick={() => setSoundcloudListTab("recent")}
+                >
+                  Most recent
+                </button>
+              </div>
+
+              <div
                 id="soundcloud-panel-body"
                 className="soundcloudPanelBody"
                 role="region"
@@ -527,17 +658,37 @@ export default function App() {
                   <ul className="soundcloudWidgetList">
                     {soundcloudEmbedItems.map((item, i) => (
                       <li
-                        key={`${item.url}-${i}`}
+                        key={`${soundcloudListTab}-${item.url}-${i}`}
                         className="soundcloudWidgetItem"
                       >
-                        {item.title || item.playbackCount != null ? (
+                        {item.title ||
+                        formatPlayCount(item.playbackCount) != null ||
+                        formatSoundcloudCreatedAt(item.createdAt) ? (
                           <div className="soundcloudWidgetTrackMeta">
                             {item.title ? (
                               <span className="soundcloudWidgetTrackTitle">
                                 {item.title}
                               </span>
                             ) : null}
-                            {formatPlayCount(item.playbackCount) != null ? (
+                            {soundcloudListTab === "recent" ? (
+                              (() => {
+                                const dateStr = formatSoundcloudCreatedAt(
+                                  item.createdAt,
+                                );
+                                const playsStr =
+                                  formatPlayCount(item.playbackCount) != null
+                                    ? `${formatPlayCount(item.playbackCount)} plays`
+                                    : null;
+                                const meta = [dateStr, playsStr]
+                                  .filter(Boolean)
+                                  .join(" · ");
+                                return meta ? (
+                                  <span className="soundcloudWidgetPlays">
+                                    {meta}
+                                  </span>
+                                ) : null;
+                              })()
+                            ) : formatPlayCount(item.playbackCount) != null ? (
                               <span className="soundcloudWidgetPlays">
                                 {formatPlayCount(item.playbackCount)} plays
                               </span>
@@ -563,9 +714,29 @@ export default function App() {
                     ))}
                   </ul>
                 ) : soundcloudPanelOpen &&
-                  soundcloudTop.status === "loading" ? (
+                  (soundcloudListTab === "plays"
+                    ? soundcloudPlays.status === "loading"
+                    : soundcloudRecent.status === "loading") ? (
                   <p className="soundcloudPanelBodyLoading" role="status">
                     Loading players…
+                  </p>
+                ) : soundcloudPanelOpen &&
+                  soundcloudEmbedItems.length === 0 ? (
+                  <p className="soundcloudPanelBodyLoading" role="status">
+                    {(() => {
+                      const src =
+                        soundcloudListTab === "plays"
+                          ? soundcloudPlays
+                          : soundcloudRecent;
+                      if (src.status === "error") {
+                        return soundcloudListTab === "plays"
+                          ? "Could not load tracks."
+                          : "Could not load recent tracks.";
+                      }
+                      return soundcloudListTab === "plays"
+                        ? "No tracks to show."
+                        : "No public tracks to show.";
+                    })()}
                   </p>
                 ) : null}
               </div>
