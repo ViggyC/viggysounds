@@ -51,6 +51,14 @@ export const EPK = {
       statusLabel: "Tickets",
       href: "https://tickets.qforestfestival.com/?coupon=Viggy2026",
     },
+    {
+      date: "April 16th 2026",
+      title: "Road to Q Forest With Middle Earth",
+      venue: "Larimer Lounge",
+      city: "Denver, CO",
+      statusLabel: "Tickets",
+      href: "https://larimerlounge.com/event/road-to-q-forest-w-middle-earth-entertainment-feat-sleazy-lettuce-viggy-bryght-lyght-q-peachez-free-event/ski-house/denver-colorado/",
+    },
   ],
   pastShows: [
     {
