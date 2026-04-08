@@ -17,9 +17,32 @@ function formatDate(dateStr) {
   }).format(dt);
 }
 
-function isValidDate(dateStr) {
-  const dt = new Date(`${dateStr}T00:00:00`);
-  return !Number.isNaN(dt.getTime());
+/**
+ * Epoch ms for sorting show lists. Supports YYYY-MM-DD and common display strings
+ * in `date` (e.g. "April 16th, 2026", "July 10-11, 2026" uses the first day).
+ * @returns {number} NaN if unparseable
+ */
+function parseShowDateForSort(dateStr) {
+  if (dateStr == null || String(dateStr).trim() === "") return NaN;
+  const s = String(dateStr).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const t = new Date(`${s}T12:00:00`).getTime();
+    return Number.isNaN(t) ? NaN : t;
+  }
+  // "July 10-11, 2026" — must run before Date.parse (which can mis-parse the range)
+  const monthDayRange = s.match(
+    /^([A-Za-z]+)\s+(\d{1,2})\s*-\s*\d{1,2},?\s*(\d{4})\s*$/,
+  );
+  if (monthDayRange) {
+    const tryStr = `${monthDayRange[1]} ${monthDayRange[2]}, ${monthDayRange[3]}`;
+    const ms = Date.parse(tryStr);
+    if (!Number.isNaN(ms)) return ms;
+  }
+  const deOrdinal = s.replace(/(\d+)(st|nd|rd|th)\b/gi, "$1");
+  let ms = Date.parse(deOrdinal);
+  if (!Number.isNaN(ms)) return ms;
+  ms = Date.parse(s);
+  return Number.isNaN(ms) ? NaN : ms;
 }
 
 function youtubeThumb(videoId) {
@@ -287,26 +310,26 @@ export default function App() {
     return () => window.clearInterval(id);
   }, [musicCompact, showPhotoCount, photoSlidePaused, prefersReducedMotion]);
 
+  /** Soonest first */
   const upcoming = useMemo(() => {
     return [...EPK.upcomingShows].sort((a, b) => {
-      const aOk = isValidDate(a.date);
-      const bOk = isValidDate(b.date);
-      if (aOk && bOk)
-        return new Date(`${a.date}T00:00:00`) - new Date(`${b.date}T00:00:00`);
-      if (aOk) return -1;
-      if (bOk) return 1;
+      const ta = parseShowDateForSort(a.date);
+      const tb = parseShowDateForSort(b.date);
+      if (!Number.isNaN(ta) && !Number.isNaN(tb)) return ta - tb;
+      if (!Number.isNaN(ta)) return -1;
+      if (!Number.isNaN(tb)) return 1;
       return String(a.date).localeCompare(String(b.date));
     });
   }, []);
 
+  /** Most recent first */
   const past = useMemo(() => {
     return [...EPK.pastShows].sort((a, b) => {
-      const aOk = isValidDate(a.date);
-      const bOk = isValidDate(b.date);
-      if (aOk && bOk)
-        return new Date(`${b.date}T00:00:00`) - new Date(`${a.date}T00:00:00`);
-      if (aOk) return -1;
-      if (bOk) return 1;
+      const ta = parseShowDateForSort(a.date);
+      const tb = parseShowDateForSort(b.date);
+      if (!Number.isNaN(ta) && !Number.isNaN(tb)) return tb - ta;
+      if (!Number.isNaN(ta)) return -1;
+      if (!Number.isNaN(tb)) return 1;
       return String(b.date).localeCompare(String(a.date));
     });
   }, []);
@@ -378,8 +401,7 @@ export default function App() {
           title: typeof t.title === "string" ? t.title : "",
           playbackCount:
             typeof t.playback_count === "number" ? t.playback_count : null,
-          createdAt:
-            typeof t.created_at === "string" ? t.created_at : null,
+          createdAt: typeof t.created_at === "string" ? t.created_at : null,
         }))
         .filter((x) => x.url);
     }
@@ -720,8 +742,7 @@ export default function App() {
                   <p className="soundcloudPanelBodyLoading" role="status">
                     Loading players…
                   </p>
-                ) : soundcloudPanelOpen &&
-                  soundcloudEmbedItems.length === 0 ? (
+                ) : soundcloudPanelOpen && soundcloudEmbedItems.length === 0 ? (
                   <p className="soundcloudPanelBodyLoading" role="status">
                     {(() => {
                       const src =
