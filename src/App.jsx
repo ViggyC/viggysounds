@@ -218,7 +218,7 @@ export default function App() {
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [photoSlideIndex, setPhotoSlideIndex] = useState(0);
   const [photoSlidePaused, setPhotoSlidePaused] = useState(false);
-  const [musicFilter, setMusicFilter] = useState("both"); // original | remix | both | soundcloud
+  const [musicFilter, setMusicFilter] = useState("original"); // original | remix | soundcloud
   /** Narrow viewports: compact music rows + photo slideshow (grid on wider screens) */
   const musicCompact = useMediaQuery("(max-width: 560px)");
   const prefersReducedMotion = useMediaQuery(
@@ -430,9 +430,7 @@ export default function App() {
       ? originalsTracks
       : musicFilter === "remix"
         ? remixesTracks
-        : musicFilter === "soundcloud"
-          ? []
-          : [...originalsTracks, ...remixesTracks];
+        : [];
 
   const latestReleaseTrack = useMemo(() => {
     const dated = musicTracks
@@ -536,15 +534,6 @@ export default function App() {
             role="tablist"
             aria-label="Music filters"
           >
-            <button
-              type="button"
-              className={`filterBtn ${musicFilter === "both" ? "filterBtnActive" : ""}`}
-              role="tab"
-              aria-selected={musicFilter === "both"}
-              onClick={() => setMusicFilter("both")}
-            >
-              All
-            </button>
             <button
               type="button"
               className={`filterBtn ${musicFilter === "original" ? "filterBtnActive" : ""}`}

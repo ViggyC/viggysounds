@@ -19,6 +19,12 @@ tracks:
     coverArt: "media/cover-art/mine.png"
     description: "Grunge Step"
 
+  - title: "Hermitude - The Buzz (VIGGY FLIP)"
+    releaseDate: "2025-08-02"
+    soundcloud: "https://soundcloud.com/viggysounds/the-buzz-viggy-flip"
+    coverArt: "media/cover-art/buzz.png"
+    description: "Do you feel it in the air?"
+
   - title: "Keys N Krates - Dum Dee Dum (VIGGY Flip)"
     releaseDate: "2025-04-24"
     soundcloud: "https://soundcloud.com/viggysounds/keysnkrates-dumdeedum-viggy-flip"

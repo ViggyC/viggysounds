@@ -1,6 +1,13 @@
 # Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
 category: original
 tracks:
+  - title: "HYPNOVIG"
+    releaseDate: "2026-04-03"
+    soundcloud: "https://soundcloud.com/viggysounds/hypnovig"
+    spotify: "https://open.spotify.com/track/0QTlrErFubM5ZbcN8vL34q?si=0e5844ebbab6420d"
+    coverArt: "media/cover-art/HYPNOVIG.JPG"
+    description: "VIGGY VIGGY VIGGY, can't you see? Sometimes your sounds just hypnotize me 😵‍💫"
+
   - title: "ENERGY"
     releaseDate: "2026-02-27"
     spotify: "https://open.spotify.com/track/2gwnvLFv8GSP40J7UhTe1w?si=8af32f37fa264375"
@@ -35,10 +42,3 @@ tracks:
     soundcloud: "https://soundcloud.com/viggysounds/getyouhigh"
     coverArt: "media/cover-art/get_you_high.png"
     description: "Just Vibes"
-
-  - title: "HYPNOVIG"
-    releaseDate: "2026-04-03"
-    soundcloud: "https://soundcloud.com/viggysounds/hypnovig"
-    spotify: "https://open.spotify.com/track/0QTlrErFubM5ZbcN8vL34q?si=0e5844ebbab6420d"
-    coverArt: "media/cover-art/HYPNOVIG.JPG"
-    description: "VIGGY VIGGY VIGGY, can't you see? Sometimes your sounds just hypnotize me 😵‍💫"
