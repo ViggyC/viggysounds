@@ -163,21 +163,36 @@ function MusicLinksRow({ track: t }) {
     typeof t.presave === "string" && isValidStreamingUrl(t.presave)
       ? t.presave.trim()
       : null;
+  const soundcloudUrl = isValidStreamingUrl(t.soundcloud)
+    ? t.soundcloud.trim()
+    : null;
 
   if (upcoming) {
-    if (!presaveUrl) {
+    if (!presaveUrl && !soundcloudUrl) {
       return <div className="musicLinksRow" />;
     }
     return (
       <div className="musicLinksRow">
-        <a
-          className="musicChip musicChipPresave"
-          href={presaveUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Pre-save
-        </a>
+        {presaveUrl ? (
+          <a
+            className="musicChip musicChipPresave"
+            href={presaveUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Pre-save
+          </a>
+        ) : null}
+        {soundcloudUrl ? (
+          <a
+            className="musicChip musicChipSoundcloud"
+            href={soundcloudUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            SoundCloud
+          </a>
+        ) : null}
       </div>
     );
   }
@@ -199,10 +214,10 @@ function MusicLinksRow({ track: t }) {
           Spotify
         </a>
       ) : null}
-      {isValidStreamingUrl(t.soundcloud) ? (
+      {soundcloudUrl ? (
         <a
           className="musicChip musicChipSoundcloud"
-          href={t.soundcloud.trim()}
+          href={soundcloudUrl}
           target="_blank"
           rel="noreferrer"
         >
