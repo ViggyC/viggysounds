@@ -1,6 +1,12 @@
 # Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
 category: original
 tracks:
+  - title: "DROP IT"
+    releaseDate: "2026-04-11"
+    soundcloud: "https://soundcloud.com/middleearthentertainment/drop-it"
+    coverArt: "media/cover-art/dropit.png"
+    description: "Skrt, drop it yuh"
+
   - title: "HYPNOVIG"
     releaseDate: "2026-04-03"
     soundcloud: "https://soundcloud.com/viggysounds/hypnovig"
