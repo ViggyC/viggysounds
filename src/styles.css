@@ -164,7 +164,38 @@ a {
   width: min(560px, 92vw);
   height: auto;
   margin: 0 auto;
-  filter: drop-shadow(0 18px 55px rgba(0, 0, 0, 0.35));
+  transform-origin: center center;
+  animation:
+    heroLogoFloat 7s ease-in-out infinite,
+    heroLogoGlow 5.5s ease-in-out infinite;
+}
+
+@keyframes heroLogoFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-7px) scale(1.022);
+  }
+}
+
+@keyframes heroLogoGlow {
+  0%,
+  100% {
+    filter:
+      drop-shadow(0 18px 55px rgba(0, 0, 0, 0.38))
+      drop-shadow(0 0 26px rgba(168, 85, 247, 0.45))
+      drop-shadow(0 0 52px rgba(124, 58, 237, 0.25));
+  }
+
+  50% {
+    filter:
+      drop-shadow(0 24px 62px rgba(0, 0, 0, 0.42))
+      drop-shadow(0 0 42px rgba(34, 211, 238, 0.52))
+      drop-shadow(0 0 72px rgba(168, 85, 247, 0.32));
+  }
 }
 
 .heroTagline {
@@ -177,6 +208,532 @@ a {
   font-weight: 600;
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Solid under-layer + clipped gradient on top (fallback if clip paints empty). */
+.heroTaglineCinematic {
+  text-shadow: none;
+}
+
+.heroTaglineCinematic .heroTaglineStack {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  transform-origin: center center;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.55))
+    drop-shadow(0 0 46px rgba(34, 211, 238, 0.38))
+    drop-shadow(0 5px 32px rgba(0, 0, 0, 0.78));
+  animation: heroTaglineStackPulse 5.5s ease-in-out infinite;
+}
+
+.heroTaglineCinematic .heroTaglineUnder {
+  display: block;
+  color: rgba(252, 252, 255, 0.95);
+  text-shadow:
+    0 0 24px rgba(124, 58, 237, 0.55),
+    0 0 48px rgba(34, 211, 238, 0.28),
+    0 2px 4px rgba(0, 0, 0, 0.85),
+    0 14px 48px rgba(0, 0, 0, 0.65);
+}
+
+.heroTaglineCinematic .heroTaglineGradient {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  right: 0;
+  display: block;
+  padding-bottom: 0.06em;
+  background-image: linear-gradient(
+    105deg,
+    rgba(160, 170, 210, 0.88) 0%,
+    rgba(196, 181, 253, 0.98) 14%,
+    rgba(34, 211, 238, 0.95) 28%,
+    rgba(255, 255, 255, 1) 42%,
+    rgba(253, 224, 255, 0.98) 50%,
+    rgba(167, 139, 250, 0.95) 58%,
+    rgba(255, 255, 255, 1) 68%,
+    rgba(125, 211, 252, 0.92) 82%,
+    rgba(180, 190, 235, 0.9) 100%
+  );
+  background-size: 420% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: heroTaglineShimmer 5s ease-in-out infinite;
+}
+
+@keyframes heroTaglineStackPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes heroTaglineShimmer {
+  0% {
+    background-position: 8% 50%;
+  }
+
+  50% {
+    background-position: 92% 50%;
+  }
+
+  100% {
+    background-position: 8% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroLogo {
+    animation: none;
+    transform: none;
+    filter: drop-shadow(0 18px 55px rgba(0, 0, 0, 0.35));
+  }
+
+  .heroTaglineCinematic .heroTaglineStack {
+    filter: none;
+    animation: none;
+    transform: none;
+    letter-spacing: 0.01em;
+  }
+
+  .heroTaglineCinematic .heroTaglineUnder {
+    display: none;
+  }
+
+  .heroTaglineCinematic .heroTaglineGradient {
+    position: relative;
+    left: auto;
+    top: auto;
+    right: auto;
+    z-index: auto;
+    animation: none;
+    background: none;
+    color: rgba(245, 246, 255, 0.82);
+    -webkit-text-fill-color: rgba(245, 246, 255, 0.82);
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+}
+
+@supports not (background-clip: text) {
+  .heroTaglineCinematic .heroTaglineGradient {
+    display: none;
+  }
+}
+
+/* Spotify playlists block (GET /api/spotify/playlists); lives in #spotify-playlists */
+.heroPlaylists {
+  width: 100%;
+  text-align: left;
+}
+
+.sectionSpotify .heroPlaylists {
+  max-width: min(720px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sectionSpotify .spotifyCatalog {
+  max-width: min(720px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  text-align: left;
+}
+
+.sectionSpotify .heroPlaylists + .spotifyCatalog {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spotifyCatalogTop {
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+
+.spotifyCatalogTitle {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 246, 255, 0.92);
+}
+
+.spotifyCatalogTitleNested {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+.spotifyCatalogArtist {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: rgba(245, 246, 255, 0.72);
+}
+
+.spotifyCatalogHint {
+  margin: 8px 2px 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: rgba(245, 246, 255, 0.55);
+}
+
+.spotifyCatalogList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spotifyCatalogRow {
+  margin: 0;
+  padding: 0;
+}
+
+.spotifyCatalogRowInner {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.spotifyCatalogRowBtn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: rgba(245, 246, 255, 0.94);
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.spotifyCatalogRowBtn:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.spotifyCatalogRowBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.55);
+}
+
+.spotifyCatalogRowBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.spotifyCatalogRowBtnActive {
+  border-color: rgba(29, 185, 84, 0.55);
+  background: rgba(29, 185, 84, 0.12);
+  box-shadow: 0 0 0 1px rgba(29, 185, 84, 0.28);
+}
+
+.spotifyCatalogRowOpen {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(196, 220, 255, 0.92);
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.spotifyCatalogRowOpen:hover {
+  border-color: rgba(29, 185, 84, 0.45);
+  background: rgba(29, 185, 84, 0.1);
+}
+
+.spotifyCatalogEmbed {
+  width: 100%;
+}
+
+.spotifyCatalogMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.spotifyCatalogTrackName {
+  font-size: 0.92rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.spotifyCatalogExplicit {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(245, 246, 255, 0.75);
+}
+
+.spotifyCatalogDetails {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: rgba(245, 246, 255, 0.52);
+  flex-shrink: 0;
+}
+
+.spotifyCatalogArtists {
+  max-width: 42ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spotifyCatalogAlbum {
+  max-width: 36ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spotifyCatalogDur {
+  font-variant-numeric: tabular-nums;
+  color: rgba(245, 246, 255, 0.68);
+}
+
+@media (max-width: 560px) {
+  .spotifyCatalogRowInner {
+    flex-wrap: wrap;
+  }
+
+  .spotifyCatalogRowBtn {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .spotifyCatalogRowOpen {
+    align-self: flex-end;
+  }
+
+  .spotifyCatalogDetails {
+    justify-content: flex-start;
+  }
+
+  .spotifyCatalogArtists,
+  .spotifyCatalogAlbum {
+    white-space: normal;
+  }
+}
+
+.heroPlaylistsTop {
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.heroPlaylistsTitle {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 246, 255, 0.92);
+}
+
+.heroPlaylistsTitleNested {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+.heroPlaylistsTitleIcon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  color: #1db954;
+}
+
+.heroPlaylistsHint {
+  margin: 0 2px 10px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: rgba(245, 246, 255, 0.62);
+  text-align: left;
+}
+
+.heroPlaylistsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.heroPlaylistChipLi {
+  margin: 0;
+  padding: 0;
+}
+
+.heroPlaylistChip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  max-width: min(100%, 18rem);
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(245, 246, 255, 0.94);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.heroPlaylistChip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.55);
+}
+
+.heroPlaylistChip:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.heroPlaylistChipActive {
+  border-color: rgba(29, 185, 84, 0.55);
+  background: rgba(29, 185, 84, 0.14);
+  box-shadow: 0 0 0 1px rgba(29, 185, 84, 0.35);
+}
+
+.heroPlaylistChipLabel {
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.heroPlaylistChipMeta {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(245, 246, 255, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroPlaylistChip:hover {
+    transform: none;
+  }
+}
+
+.heroPlaylistEmbedShell {
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.heroPlaylistEmbedShellFirst {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.heroPlaylistEmbedBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.heroPlaylistEmbedLink {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(29, 185, 84, 0.45);
+  background: rgba(29, 185, 84, 0.12);
+  color: #c8f5dc;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.heroPlaylistEmbedLink:hover {
+  border-color: rgba(29, 185, 84, 0.65);
+  background: rgba(29, 185, 84, 0.2);
+}
+
+.heroPlaylistEmbedFrame {
+  position: relative;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
+  line-height: 0;
+}
+
+.heroPlaylistEmbedFrame iframe {
+  width: 100%;
+  height: 352px;
+  border: none;
+  display: block;
+}
+
+@media (max-width: 560px) {
+  .heroPlaylistEmbedFrame iframe {
+    height: min(380px, 52vh);
+    min-height: 280px;
+  }
 }
 
 .quickLinks {
@@ -369,6 +926,64 @@ a {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
+.musicSpotifyPanel {
+  width: 100%;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.musicSpotifyStatus {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: rgba(245, 246, 255, 0.72);
+}
+
+.musicSpotifyEmpty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: rgba(245, 246, 255, 0.62);
+}
+
+.musicSpotifyError {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(127, 29, 29, 0.25);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: rgba(254, 226, 226, 0.95);
+}
+
+.sectionSpotify .spotifyCatalog + .musicSpotifyPlaylistsWrap {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.musicSpotifyPlaylistsWrap {
+  width: 100%;
+}
+
+.musicSpotifyCode {
+  font-size: 0.82em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(196, 220, 255, 0.95);
+}
+
 .musicGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -448,25 +1063,43 @@ a {
 .musicLinksRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
 }
 
 .musicChip {
   text-decoration: none;
   border-radius: 999px;
-  padding: 8px 10px;
+  padding: 4px 8px;
   font-weight: 900;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.04);
-  min-height: 40px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   transition:
     transform 150ms ease,
     border-color 150ms ease,
     background 150ms ease;
+}
+
+.musicChipIconOnly {
+  padding: 4px;
+  min-width: 28px;
+}
+
+.musicChipIcon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.musicChipCompactLabel {
+  padding: 4px 9px;
+  letter-spacing: 0.02em;
 }
 
 .musicChip:hover {
@@ -506,6 +1139,17 @@ a {
 .musicChipPresave:hover {
   background: rgba(124, 58, 237, 0.32);
   border-color: rgba(196, 181, 253, 0.6);
+}
+
+.musicChipBeatport {
+  background: rgba(147, 51, 234, 0.14);
+  border-color: rgba(192, 132, 252, 0.48);
+  color: #f3e8ff;
+}
+
+.musicChipBeatport:hover {
+  background: rgba(147, 51, 234, 0.24);
+  border-color: rgba(216, 180, 254, 0.62);
 }
 
 .soundcloudPanel {

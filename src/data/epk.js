@@ -88,6 +88,10 @@ export const EPK = {
       title: "Full Live DJ Set @ Larimer Lounge",
       videoId: "gJEODcIixys",
     },
+    {
+      title: "Fur Elise",
+      videoId: "PifunwqnrnY",
+    },
   ],
   quickActions: [
     { label: "Upcoming Shows", href: "#shows-upcoming" },

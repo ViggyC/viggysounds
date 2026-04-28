@@ -1,10 +1,12 @@
 # Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
+# Optional per track: beatport — store URL (shown as a Beatport button when set).
 category: original
 tracks:
   - title: "DROP IT"
     releaseDate: "2026-04-24"
     soundcloud: "https://soundcloud.com/middleearthentertainment/drop-it"
     spotify: "https://open.spotify.com/track/2A321gYobEiFKvl7qkPd7p?si=87a5c94f4c424214"
+    beatport: "https://www.beatport.com/release/drop-it/6796067"
     coverArt: "media/cover-art/dropit.png"
     description: "Skrt, drop it yuh"
 
@@ -12,6 +14,7 @@ tracks:
     releaseDate: "2026-04-03"
     soundcloud: "https://soundcloud.com/viggysounds/hypnovig"
     spotify: "https://open.spotify.com/track/0QTlrErFubM5ZbcN8vL34q?si=0e5844ebbab6420d"
+    beatport: "https://www.beatport.com/release/hypnovig/6764228"
     coverArt: "media/cover-art/HYPNOVIG.JPG"
     description: "VIGGY VIGGY VIGGY, can't you see? Sometimes your sounds just hypnotize me 😵‍💫"
 
@@ -19,6 +22,7 @@ tracks:
     releaseDate: "2026-02-27"
     spotify: "https://open.spotify.com/track/2gwnvLFv8GSP40J7UhTe1w?si=8af32f37fa264375"
     soundcloud: "https://soundcloud.com/browneedub/energy"
+    beatport: "https://www.beatport.com/release/energy/5998541"
     coverArt: "media/cover-art/ENERGY.JPG"
     description: "Brownee x VIGGY x Keylo"
 
@@ -26,6 +30,7 @@ tracks:
     releaseDate: "2026-01-01"
     spotify: "https://open.spotify.com/track/1Aja7ucCKHIgLB9Xh8Ta08?si=80afea562d2e4a58"
     soundcloud: "https://soundcloud.com/viggysounds/deeper"
+    beatport: "https://www.beatport.com/release/deeper/6766553"
     coverArt: "media/cover-art/DEEPER.png"
     description: "Journey into the depths of the mind and heart"
 
@@ -33,6 +38,7 @@ tracks:
     releaseDate: "2025-09-27"
     spotify: "https://open.spotify.com/track/2WcLzt5KrKxnEV5UffJ4us?si=667f9843de6b4633"
     soundcloud: "https://soundcloud.com/viggysounds/i-like-that-viggy"
+    beatport: "https://www.beatport.com/release/i-like-that/6766554"
     coverArt: "media/cover-art/ILIKETHAT.png"
     description: "You will like this"
 
@@ -40,6 +46,7 @@ tracks:
     releaseDate: "2025-05-23"
     spotify: "https://open.spotify.com/track/5Df4HkiGshTf4XhaDqhRmt?si=1f9b5bf970d6403c"
     soundcloud: "https://soundcloud.com/viggysounds/coherence"
+    beatport: "https://www.beatport.com/release/coherence/6766673"
     coverArt: "media/cover-art/coherence.jpeg"
     description: "The flow of awareness and insight that we experience once the mind and emotions are brought into balance"
 
@@ -47,5 +54,6 @@ tracks:
     releaseDate: "2025-05-16"
     spotify: "https://open.spotify.com/track/4dEoahugDtvbClnbjscnOx?si=5f23a8a957604757"
     soundcloud: "https://soundcloud.com/viggysounds/getyouhigh"
+    beatport: "https://www.beatport.com/release/get-you-high/6766675"
     coverArt: "media/cover-art/get_you_high.png"
     description: "Just Vibes"
