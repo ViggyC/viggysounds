@@ -90,7 +90,8 @@ function spotifyTopTrackIdsFromEnv() {
       continue;
     }
     /* Spotify track ids are base62; length is usually 22 */
-    if (/^[a-zA-Z0-9]+$/.test(s) && s.length >= 16 && s.length <= 24) out.push(s);
+    if (/^[a-zA-Z0-9]+$/.test(s) && s.length >= 16 && s.length <= 24)
+      out.push(s);
   }
   return out.slice(0, 50);
 }
@@ -100,7 +101,11 @@ function spotifyTopTrackIdsFromEnv() {
  * @param {{ ok: false, status: number, body: unknown }} topTracksFailure
  * @param {{ ok: boolean, status?: number, tracks?: unknown[] } | null} tracksByIdsResult — result of fallback GET /tracks, if attempted
  */
-function spotifyTopModeClientError(topTracksFailure, tracksByIdsResult, manualIdCount) {
+function spotifyTopModeClientError(
+  topTracksFailure,
+  tracksByIdsResult,
+  manualIdCount,
+) {
   const st = topTracksFailure.status;
   if (st !== 403) {
     return spotifyApiFailureMessage(
@@ -132,9 +137,7 @@ function spotifyTopModeClientError(topTracksFailure, tracksByIdsResult, manualId
     Array.isArray(tracksByIdsResult.tracks) &&
     tracksByIdsResult.tracks.length === 0
   ) {
-    return (
-      "SPOTIFY_TOP_TRACK_IDS did not yield any tracks — check that each id is valid (open the open.spotify.com/track/… URL in a browser)."
-    );
+    return "SPOTIFY_TOP_TRACK_IDS did not yield any tracks — check that each id is valid (open the open.spotify.com/track/… URL in a browser).";
   }
 
   return spotifyApiFailureMessage(
@@ -181,10 +184,7 @@ function spotifyApiFailureMessage(result, verbPhrase) {
       : 502;
 
   if (st === 403) {
-    const detail =
-      fromBody && fromBody !== "Forbidden"
-        ? `${fromBody} `
-        : "";
+    const detail = fromBody && fromBody !== "Forbidden" ? `${fromBody} ` : "";
     return (
       `${detail}${verbPhrase} (HTTP 403). ` +
       "If GET /api/spotify/ping shows GET /tracks works but top-tracks does not, your credentials are fine — Spotify is blocking certain endpoints for Development-mode apps; use SPOTIFY_TOP_TRACK_IDS or Extended Quota (see server/.env.example). " +
@@ -384,8 +384,7 @@ app.get("/api/soundcloud/auth/callback", async (req, res) => {
  */
 app.get("/api/spotify/ping", async (req, res) => {
   const allow =
-    process.env.SPOTIFY_DEBUG === "1" ||
-    process.env.NODE_ENV !== "production";
+    process.env.SPOTIFY_DEBUG === "1" || process.env.NODE_ENV !== "production";
   if (!allow) {
     res.status(404).json({ ok: false, error: "Not found" });
     return;
@@ -408,7 +407,9 @@ app.get("/api/spotify/ping", async (req, res) => {
   const probeTrackId = "11dFghVXANMlKmJgdgLM0";
 
   try {
-    const trackProbe = await spotifyGet(`/tracks/${encodeURIComponent(probeTrackId)}`);
+    const trackProbe = await spotifyGet(
+      `/tracks/${encodeURIComponent(probeTrackId)}`,
+    );
     const artistProbe = await spotifyGet(
       `/artists/${encodeURIComponent(probeArtistId)}`,
     );

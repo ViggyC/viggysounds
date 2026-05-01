@@ -32,7 +32,10 @@ export function spotifyConfigured() {
 }
 
 function fetchTimeoutMs() {
-  const n = Number.parseInt(process.env.SPOTIFY_FETCH_TIMEOUT_MS || "45000", 10);
+  const n = Number.parseInt(
+    process.env.SPOTIFY_FETCH_TIMEOUT_MS || "45000",
+    10,
+  );
   if (!Number.isFinite(n) || n < 5000) return 45_000;
   return Math.min(n, 120_000);
 }

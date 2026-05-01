@@ -26,6 +26,14 @@ function formatDate(dateStr) {
   }).format(dt);
 }
 
+function formatTrackDurationMs(ms) {
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) return "—";
+  const totalSec = Math.round(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 /**
  * Epoch ms for sorting show lists. Supports YYYY-MM-DD and common display strings
  * in `date` (e.g. "April 16th, 2026", "July 10-11, 2026" uses the first day).
@@ -349,16 +357,6 @@ function HeroSpotifyPlaylistStrip({ playlists, nested = false }) {
           className={`heroPlaylistEmbedShell${showPicker ? "" : " heroPlaylistEmbedShellFirst"}`}
           aria-label={`Spotify player: ${activePlaylist.name}`}
         >
-          <div className="heroPlaylistEmbedBar">
-            <a
-              className="heroPlaylistEmbedLink"
-              href={activePlaylist.spotifyUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open in Spotify
-            </a>
-          </div>
           <div className="heroPlaylistEmbedFrame">
             <iframe
               title={`Spotify — ${activePlaylist.name}`}
@@ -370,6 +368,153 @@ function HeroSpotifyPlaylistStrip({ playlists, nested = false }) {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** GET /api/spotify/artist/tracks (catalog); uses .spotifyCatalog styles */
+function SpotifyArtistCatalog({ status, tracks, meta, nested = false }) {
+  const [openTrackId, setOpenTrackId] = useState(null);
+  const HeadingTag = nested ? "h3" : "h2";
+
+  if (status === "loading") {
+    return (
+      <div className="spotifyCatalog" aria-busy="true">
+        <p className="spotifyCatalogHint" role="status">
+          Loading artist catalog…
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="spotifyCatalog">
+        <p className="musicSpotifyError" role="alert">
+          Could not load Spotify catalog. Configure{" "}
+          <code className="musicSpotifyCode">SPOTIFY_CLIENT_ID</code> /{" "}
+          <code className="musicSpotifyCode">SPOTIFY_CLIENT_SECRET</code> and{" "}
+          <code className="musicSpotifyCode">SPOTIFY_ARTIST_ID</code> in{" "}
+          <code className="musicSpotifyCode">server/.env</code>, then restart
+          the API.
+        </p>
+      </div>
+    );
+  }
+
+  if (status !== "ok" || tracks.length === 0) {
+    return null;
+  }
+
+  const artistLine =
+    typeof meta?.artistName === "string" && meta.artistName.trim()
+      ? meta.artistName.trim()
+      : null;
+  const hint =
+    typeof meta?.note === "string" && meta.note.trim()
+      ? meta.note.trim()
+      : typeof meta?.albumsScanned === "number" && meta.albumsScanned > 0
+        ? `${meta.albumsScanned} release${meta.albumsScanned === 1 ? "" : "s"} in catalog · tap a row to preview`
+        : "Tap a row to preview in the player";
+
+  return (
+    <div className="spotifyCatalog" aria-label="Spotify artist catalog">
+      <div className="spotifyCatalogTop">
+        <HeadingTag
+          className={`spotifyCatalogTitle${nested ? " spotifyCatalogTitleNested" : ""}`}
+        >
+          <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
+          Tracks on Spotify
+        </HeadingTag>
+        {artistLine ? (
+          <p className="spotifyCatalogArtist">{artistLine}</p>
+        ) : null}
+        <p className="spotifyCatalogHint">{hint}</p>
+      </div>
+      <ul className="spotifyCatalogList">
+        {tracks.map((t, idx) => {
+          const id = typeof t?.id === "string" ? t.id : null;
+          const name = typeof t?.name === "string" ? t.name : "Untitled";
+          const url =
+            typeof t?.spotifyUrl === "string" && t.spotifyUrl
+              ? t.spotifyUrl
+              : id
+                ? `https://open.spotify.com/track/${encodeURIComponent(id)}`
+                : null;
+          const artists = Array.isArray(t?.artists)
+            ? t.artists
+                .map((a) => (typeof a?.name === "string" ? a.name : ""))
+                .filter(Boolean)
+                .join(", ")
+            : "";
+          const albumName =
+            t?.album && typeof t.album.name === "string" ? t.album.name : "";
+          const dur = formatTrackDurationMs(t?.durationMs);
+          const expanded = id != null && openTrackId === id;
+          const canPreview = Boolean(id);
+
+          return (
+            <li
+              key={id || `spotify-catalog-${idx}`}
+              className="spotifyCatalogRow"
+            >
+              <div className="spotifyCatalogRowInner">
+                <button
+                  type="button"
+                  className={`spotifyCatalogRowBtn${expanded ? " spotifyCatalogRowBtnActive" : ""}`}
+                  disabled={!canPreview}
+                  aria-expanded={canPreview ? expanded : undefined}
+                  onClick={() => {
+                    if (!canPreview) return;
+                    setOpenTrackId((prev) => (prev === id ? null : id));
+                  }}
+                >
+                  <div className="spotifyCatalogMain">
+                    <span className="spotifyCatalogTrackName">{name}</span>
+                    {t?.explicit ? (
+                      <span className="spotifyCatalogExplicit" title="Explicit">
+                        E
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="spotifyCatalogDetails">
+                    {artists ? (
+                      <span className="spotifyCatalogArtists">{artists}</span>
+                    ) : null}
+                    {albumName ? (
+                      <span className="spotifyCatalogAlbum">{albumName}</span>
+                    ) : null}
+                    <span className="spotifyCatalogDur">{dur}</span>
+                  </div>
+                </button>
+                {url ? (
+                  <a
+                    className="spotifyCatalogRowOpen"
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open
+                  </a>
+                ) : null}
+              </div>
+              {expanded && id ? (
+                <div className="spotifyCatalogEmbed">
+                  <div className="heroPlaylistEmbedFrame">
+                    <iframe
+                      title={`Spotify — ${name}`}
+                      src={`https://open.spotify.com/embed/track/${encodeURIComponent(id)}?utm_source=generator&theme=0`}
+                      loading="lazy"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -582,6 +727,51 @@ export default function App() {
       .catch(() => {
         if (!cancelled) {
           setHeroSpotifyPlaylists({ status: "error", items: [] });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const [spotifyArtistCatalog, setSpotifyArtistCatalog] = useState({
+    status: "loading",
+    tracks: [],
+    meta: null,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    const url = `${apiRelativeUrl("/api/spotify/artist/tracks")}?limit=50`;
+    fetch(url, { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if (!data?.ok) {
+          setSpotifyArtistCatalog({
+            status: "error",
+            tracks: [],
+            meta: data?.meta ?? null,
+          });
+          return;
+        }
+        const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+        setSpotifyArtistCatalog({
+          status: tracks.length > 0 ? "ok" : "empty",
+          tracks,
+          meta: data?.meta ?? null,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSpotifyArtistCatalog({
+            status: "error",
+            tracks: [],
+            meta: null,
+          });
         }
       });
     return () => {
@@ -991,9 +1181,10 @@ export default function App() {
                 <p className="musicSpotifyError" role="alert">
                   Could not load playlists. Run the API server and check{" "}
                   <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_URL</code>{" "}
-                  / <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_IDS</code>{" "}
-                  or <code className="musicSpotifyCode">SPOTIFY_USER_ID</code> in{" "}
-                  <code className="musicSpotifyCode">server/.env</code>.
+                  /{" "}
+                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_IDS</code>{" "}
+                  or <code className="musicSpotifyCode">SPOTIFY_USER_ID</code>{" "}
+                  in <code className="musicSpotifyCode">server/.env</code>.
                 </p>
               ) : null}
               {showSpotifyPlaylistsBlock ? (
@@ -1004,10 +1195,17 @@ export default function App() {
                   />
                 </div>
               ) : null}
+              <SpotifyArtistCatalog
+                nested
+                status={spotifyArtistCatalog.status}
+                tracks={spotifyArtistCatalog.tracks}
+                meta={spotifyArtistCatalog.meta}
+              />
               {spotifyPlaylistsEmpty ? (
                 <p className="musicSpotifyEmpty">
                   No playlists returned. Add{" "}
-                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_URL</code> /{" "}
+                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_URL</code>{" "}
+                  /{" "}
                   <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_IDS</code>{" "}
                   or public playlists for{" "}
                   <code className="musicSpotifyCode">SPOTIFY_USER_ID</code> in{" "}
