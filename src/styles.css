@@ -543,20 +543,45 @@ a {
 @media (max-width: 560px) {
   .spotifyCatalogRowInner {
     flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
   }
 
   .spotifyCatalogRowBtn {
-    flex: 1 1 100%;
-    flex-direction: column;
-    align-items: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 10px;
+    padding: 6px 8px;
+    border-radius: 10px;
   }
 
-  .spotifyCatalogRowOpen {
-    align-self: flex-end;
+  .spotifyCatalogMain {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .spotifyCatalogTrackName {
+    font-size: 0.82rem;
+    line-height: 1.25;
   }
 
   .spotifyCatalogDetails {
+    flex: 1 1 100%;
     justify-content: flex-start;
+    gap: 4px 8px;
+    font-size: 0.7rem;
+    margin-top: 2px;
+  }
+
+  .spotifyCatalogRowOpen {
+    align-self: center;
+    padding: 4px 8px;
+    font-size: 0.65rem;
   }
 
   .spotifyCatalogArtists,
