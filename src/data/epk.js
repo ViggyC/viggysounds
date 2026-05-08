@@ -44,6 +44,14 @@ export const EPK = {
   ],
   upcomingShows: [
     {
+      date: "June 12th, 2026",
+      title: "Middle Earth Presents: Road to Q Forest",
+      venue: "Blackbox Lounge",
+      city: "Denver, CO",
+      statusLabel: "Tickets",
+      href: "https://blackboxdenver.co/events/mee-june12/tickets",
+    },
+    {
       date: "July 10-11, 2026",
       title: "QForest",
       venue: "Lake George, CO",
@@ -53,7 +61,7 @@ export const EPK = {
     },
     {
       date: "April 16th, 2026",
-      title: "Road to Q Forest With Middle Earth",
+      title: "Treehouse Set",
       venue: "Larimer Lounge",
       city: "Denver, CO",
       statusLabel: "Tickets",

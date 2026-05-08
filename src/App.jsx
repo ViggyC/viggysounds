@@ -15,17 +15,6 @@ function apiRelativeUrl(path) {
   return base ? `${base}${p}` : p;
 }
 
-function formatDate(dateStr) {
-  // Expected: YYYY-MM-DD
-  const dt = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(dt.getTime())) return dateStr;
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  }).format(dt);
-}
-
 function formatTrackDurationMs(ms) {
   if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) return "—";
   const totalSec = Math.round(ms / 1000);
@@ -60,6 +49,72 @@ function parseShowDateForSort(dateStr) {
   if (!Number.isNaN(ms)) return ms;
   ms = Date.parse(s);
   return Number.isNaN(ms) ? NaN : ms;
+}
+
+/**
+ * Local midnight on the last calendar day of the event (for past vs upcoming).
+ * @returns {Date | null}
+ */
+function parseShowLastLocalDay(dateStr) {
+  if (dateStr == null || String(dateStr).trim() === "") return null;
+  const s = String(dateStr).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  const monthDayRange = s.match(
+    /^([A-Za-z]+)\s+(\d{1,2})\s*-\s*(\d{1,2}),?\s*(\d{4})\s*$/,
+  );
+  if (monthDayRange) {
+    const month = monthDayRange[1];
+    const endDay = parseInt(monthDayRange[3], 10);
+    const year = parseInt(monthDayRange[4], 10);
+    const ms = Date.parse(`${month} ${endDay}, ${year}`);
+    if (Number.isNaN(ms)) return null;
+    const d = new Date(ms);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  const ms = parseShowDateForSort(s);
+  if (Number.isNaN(ms)) return null;
+  const d = new Date(ms);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function isShowPast(dateStr, now = new Date()) {
+  const lastDay = parseShowLastLocalDay(dateStr);
+  if (!lastDay) return false;
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
+  return todayStart > lastDay;
+}
+
+function formatDate(dateStr) {
+  const s = String(dateStr ?? "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const dt = new Date(`${s}T00:00:00`);
+    if (Number.isNaN(dt.getTime())) return dateStr;
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    }).format(dt);
+  }
+  // Keep multi-day labels as authored (e.g. "July 10-11, 2026")
+  if (/^[A-Za-z]+\s+\d{1,2}\s*-\s*\d{1,2},?\s*\d{4}\s*$/.test(s)) {
+    return s;
+  }
+  const ms = parseShowDateForSort(s);
+  if (!Number.isNaN(ms)) {
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    }).format(new Date(ms));
+  }
+  return s || dateStr;
 }
 
 function youtubeThumb(videoId) {
@@ -616,29 +671,66 @@ export default function App() {
     return () => window.clearInterval(id);
   }, [musicCompact, showPhotoCount, photoSlidePaused, prefersReducedMotion]);
 
-  /** Soonest first */
-  const upcoming = useMemo(() => {
-    return [...EPK.upcomingShows].sort((a, b) => {
+  /** Bump when local calendar day changes so past/upcoming lists stay correct overnight. */
+  const [showDayTick, setShowDayTick] = useState(0);
+  useEffect(() => {
+    let timeoutId;
+    const scheduleNextMidnight = () => {
+      const now = Date.now();
+      const nextMidnight = new Date();
+      nextMidnight.setDate(nextMidnight.getDate() + 1);
+      nextMidnight.setHours(0, 0, 0, 0);
+      const delay = Math.max(nextMidnight.getTime() - now, 1000);
+      timeoutId = window.setTimeout(() => {
+        setShowDayTick((n) => n + 1);
+        scheduleNextMidnight();
+      }, delay);
+    };
+    scheduleNextMidnight();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const allShows = useMemo(() => {
+    const seen = new Set();
+    const out = [];
+    for (const s of [...EPK.upcomingShows, ...EPK.pastShows]) {
+      const k = `${s.date}\0${s.title}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push(s);
+    }
+    return out;
+  }, []);
+
+  /** Soonest first / most recent first, split by calendar day vs today */
+  const { upcoming, past } = useMemo(() => {
+    const now = new Date();
+    const upcomingList = [];
+    const pastList = [];
+    for (const s of allShows) {
+      if (isShowPast(s.date, now)) pastList.push(s);
+      else upcomingList.push(s);
+    }
+    const sortAsc = (a, b) => {
       const ta = parseShowDateForSort(a.date);
       const tb = parseShowDateForSort(b.date);
       if (!Number.isNaN(ta) && !Number.isNaN(tb)) return ta - tb;
       if (!Number.isNaN(ta)) return -1;
       if (!Number.isNaN(tb)) return 1;
       return String(a.date).localeCompare(String(b.date));
-    });
-  }, []);
-
-  /** Most recent first */
-  const past = useMemo(() => {
-    return [...EPK.pastShows].sort((a, b) => {
+    };
+    const sortDesc = (a, b) => {
       const ta = parseShowDateForSort(a.date);
       const tb = parseShowDateForSort(b.date);
       if (!Number.isNaN(ta) && !Number.isNaN(tb)) return tb - ta;
       if (!Number.isNaN(ta)) return -1;
       if (!Number.isNaN(tb)) return 1;
       return String(b.date).localeCompare(String(a.date));
-    });
-  }, []);
+    };
+    upcomingList.sort(sortAsc);
+    pastList.sort(sortDesc);
+    return { upcoming: upcomingList, past: pastList };
+  }, [allShows, showDayTick]);
 
   const activeVideo =
     activeVideoId && EPK.youtubeVideos.find((v) => v.videoId === activeVideoId);
@@ -1368,7 +1460,7 @@ export default function App() {
 
         <section className="section" id="shows-upcoming">
           <div className="sectionHeader">
-            <h2>Upcoming Shows</h2>
+            <h2>Shows</h2>
           </div>
           <div className="showList">
             {upcoming.map((s) => (
