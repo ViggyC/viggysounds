@@ -2,6 +2,14 @@
 # Optional per track: beatport — store URL (shown as a Beatport button when set).
 category: original
 tracks:
+  - title: "Hans Zimmer - TIME (VIGGY FLIP)"
+    releaseDate: "2026-06-02"
+    soundcloud: "https://soundcloud.com/viggysounds/time"
+    spotify: ""
+    beatport: ""
+    coverArt: "media/cover-art/TIME.png"
+    description: "Dreamstep"
+
   - title: "DROP IT"
     releaseDate: "2026-04-24"
     soundcloud: "https://soundcloud.com/middleearthentertainment/drop-it"

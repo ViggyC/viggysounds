@@ -44,6 +44,14 @@ export const EPK = {
   ],
   upcomingShows: [
     {
+      date: "July 9th, 2026",
+      title: "St. Mary w/ Snaxxx, Edamami + VIGGY",
+      venue: "Larimer Lounge",
+      city: "Denver, CO",
+      statusLabel: "Tickets",
+      href: "https://larimerlounge.com/event/st-mary-w-snaxxx-edamami-viggy/larimer-lounge/denver-colorado/",
+    },
+    {
       date: "June 12th, 2026",
       title: "Middle Earth Presents: Road to Q Forest",
       venue: "Blackbox Lounge",
