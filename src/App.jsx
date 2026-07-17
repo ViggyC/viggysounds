@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa";
-import { SiBeatport, SiSoundcloud, SiSpotify } from "react-icons/si";
+import { SiBeatport, SiInstagram, SiSoundcloud, SiSpotify } from "react-icons/si";
 import { EPK } from "./data/epk.js";
 import showPhotos from "./generated/showPhotos.json";
 import yaml from "js-yaml";
@@ -693,7 +693,7 @@ export default function App() {
   const allShows = useMemo(() => {
     const seen = new Set();
     const out = [];
-    for (const s of [...EPK.upcomingShows, ...EPK.pastShows]) {
+    for (const s of EPK.shows ?? []) {
       const k = `${s.date}\0${s.title}`;
       if (seen.has(k)) continue;
       seen.add(k);
@@ -1496,18 +1496,38 @@ export default function App() {
             <h2>Past Shows</h2>
           </div>
           <div className="showList">
-            {past.map((s) => (
-              <div key={s.date + s.title} className="showCard showCardAlt">
-                <div className="showDate">{formatDate(s.date)}</div>
-                <div className="showInfo">
-                  <div className="showTitle">{s.title}</div>
-                  <div className="showVenue">
-                    {s.venue} · {s.city}
+            {past.map((s) => {
+              const instagramHref =
+                typeof s.instagram === "string" ? s.instagram.trim() : "";
+              return (
+                <div key={s.date + s.title} className="showCard showCardAlt">
+                  <div className="showDate">{formatDate(s.date)}</div>
+                  <div className="showInfo">
+                    <div className="showTitle">{s.title}</div>
+                    <div className="showVenue">
+                      {s.venue} · {s.city}
+                    </div>
                   </div>
+                  {instagramHref ? (
+                    <a
+                      className="pillBtn pillBtnInstagram"
+                      href={instagramHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Instagram highlights — ${s.title}`}
+                    >
+                      <SiInstagram
+                        className="pillBtnIcon"
+                        aria-hidden
+                      />
+                      Highlights
+                    </a>
+                  ) : (
+                    <div className="pillBtn pillBtnDisabled">Saved</div>
+                  )}
                 </div>
-                <div className="pillBtn pillBtnDisabled">Saved</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

@@ -42,54 +42,50 @@ export const EPK = {
       brandColor: "#FF0000",
     },
   ],
-  upcomingShows: [
+  // One list; App splits by date into Shows vs Past Shows.
+  // Optional: `href` + `statusLabel` (tickets), `instagram` (highlights when past).
+  shows: [
+    {
+      date: "July 10-11, 2026",
+      title: "QForest",
+      venue: "Lake George, CO",
+      city: "Lake George, CO",
+      instagram: "https://www.qforestfestival.com/#lineup",
+    },
     {
       date: "July 9th, 2026",
       title: "St. Mary w/ Snaxxx, Edamami + VIGGY",
       venue: "Larimer Lounge",
       city: "Denver, CO",
-      statusLabel: "Tickets",
-      href: "https://larimerlounge.com/event/st-mary-w-snaxxx-edamami-viggy/larimer-lounge/denver-colorado/",
+      instagram: "https://www.instagram.com/p/DayklBrjjCF",
     },
     {
       date: "June 12th, 2026",
       title: "Middle Earth Presents: Road to Q Forest",
       venue: "Blackbox Lounge",
       city: "Denver, CO",
-      statusLabel: "Tickets",
-      href: "https://blackboxdenver.co/events/mee-june12/tickets",
-    },
-    {
-      date: "July 10-11, 2026",
-      title: "QForest",
-      venue: "Lake George, CO",
-      city: "Lake George, CO",
-      statusLabel: "Tickets",
-      href: "https://tickets.qforestfestival.com/?coupon=Viggy2026",
-    },
-    {
-      date: "April 16th, 2026",
-      title: "Treehouse Set",
-      venue: "Larimer Lounge",
-      city: "Denver, CO",
-      statusLabel: "Tickets",
-      href: "https://larimerlounge.com/event/road-to-q-forest-w-middle-earth-entertainment-feat-sleazy-lettuce-viggy-bryght-lyght-q-peachez-free-event/ski-house/denver-colorado/",
+      instagram: "https://www.instagram.com/p/DZnaEl6ua0b/",
     },
     {
       date: "May 2nd, 2026",
       title: "DubWub",
       venue: "River Bar",
       city: "Denver, CO",
-      statusLabel: "Tickets",
-      href: "https://s.pear.us/6uNwJP",
+      instagram: "https://www.instagram.com/p/DYC_DpIjppt",
     },
-  ],
-  pastShows: [
+    {
+      date: "April 16th, 2026",
+      title: "Treehouse Set",
+      venue: "Larimer Lounge",
+      city: "Denver, CO",
+      instagram: "https://www.instagram.com/p/DXzcl_lOwNx/",
+    },
     {
       date: "2026-03-12",
       title: "MYRIAS & JiLLi w/ Wizzy Wonk + VIGGY",
       venue: "Larimer Lounge",
       city: "Denver, CO",
+      instagram: "https://www.instagram.com/p/DV6fRhkji_U",
     },
     {
       date: "2025-12-18",
@@ -97,6 +93,7 @@ export const EPK = {
         "Ski House presents Bassmass Ft. VIGGY, THUG CITY, Brownee + All Nighter",
       venue: "Larimer Lounge",
       city: "Denver, CO",
+      instagram: "https://www.instagram.com/p/DSk5G8_jnAF",
     },
   ],
   youtubeVideos: [

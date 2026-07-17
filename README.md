@@ -137,8 +137,7 @@ Edit `src/data/epk.js`:
 
 - `artistName`, `artistTagline`, `socialCta`
 - `hero.backgroundImage`
-- `upcomingShows` (use `date` as `YYYY-MM-DD` + `href` to your ticket/RSVP link)
-- `pastShows`
+- `shows` (one list; dates decide upcoming vs past — optional `href`/`statusLabel` for tickets, `instagram` for highlights)
 - `youtubeVideos` (`videoId` only)
 - `socials`
 - `contact.email`
