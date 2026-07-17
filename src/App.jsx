@@ -1262,8 +1262,14 @@ export default function App() {
             <div
               className="musicSpotifyPanel sectionSpotify"
               id="spotify-playlists"
-              aria-label="Spotify playlists"
+              aria-label="Spotify"
             >
+              <SpotifyArtistCatalog
+                nested
+                status={spotifyArtistCatalog.status}
+                tracks={spotifyArtistCatalog.tracks}
+                meta={spotifyArtistCatalog.meta}
+              />
               {spotifyPlaylistsLoading ? (
                 <p className="musicSpotifyStatus" role="status">
                   Loading Spotify…
@@ -1287,12 +1293,6 @@ export default function App() {
                   />
                 </div>
               ) : null}
-              <SpotifyArtistCatalog
-                nested
-                status={spotifyArtistCatalog.status}
-                tracks={spotifyArtistCatalog.tracks}
-                meta={spotifyArtistCatalog.meta}
-              />
               {spotifyPlaylistsEmpty ? (
                 <p className="musicSpotifyEmpty">
                   No playlists returned. Add{" "}

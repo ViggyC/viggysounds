@@ -101,6 +101,10 @@ export const EPK = {
   ],
   youtubeVideos: [
     {
+      title: "Black Box June 12th, 2026",
+      videoId: "L3NLAukAFTw",
+    },
+    {
       title: "Full Live DJ Set @ Larimer Lounge",
       videoId: "gJEODcIixys",
     },

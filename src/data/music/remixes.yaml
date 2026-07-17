@@ -1,9 +1,15 @@
 # Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
 category: remix
 tracks:
+  - title: "Fatboy Slim - Star 69 (VIGGY FLIP) "
+    releaseDate: "2026-06-23"
+    soundcloud: "https://soundcloud.com/viggysounds/fatboy-slim-star-69-viggy-flip"
+    coverArt: "media/cover-art/FATBOY.png"
+    description: "They know what is what but they don't know what it is what"
+
   - title: "Lights Go Out x Sicko Mode (VIGGY FLIP) "
     releaseDate: "2026-02-19"
-    soundcloud: "https://open.spotify.com/"
+    soundcloud: "https://soundcloud.com/viggysounds/lgoxsickomode-viggy"
     coverArt: "media/cover-art/LGO.png"
     description: "I win"
 
@@ -24,6 +30,12 @@ tracks:
     soundcloud: "https://soundcloud.com/viggysounds/the-buzz-viggy-flip"
     coverArt: "media/cover-art/buzz.png"
     description: "Do you feel it in the air?"
+
+  - title: "Die Antwoord - I Don't Care (VIGGY Flip)"
+    releaseDate: "2025-04-24"
+    soundcloud: "https://soundcloud.com/viggysounds/dieantwoord-idontcare-viggy-flip"
+    coverArt: "media/cover-art/IDC.png"
+    description: "Na Na Na"
 
   - title: "Keys N Krates - Dum Dee Dum (VIGGY Flip)"
     releaseDate: "2025-04-24"
