@@ -1,6 +1,6 @@
 /**
  * Load all uploads for the authenticated user (/me/tracks).
- * "Recent" lists: public `sharing` + valid `created_at` only, sorted newest first.
+ * "Recent" lists: public `sharing` + release date metadata (fallback: created_at), newest first.
  */
 
 import { soundcloudGetUser } from "./soundcloud.js";
@@ -71,7 +71,7 @@ function isPublicTrack(t) {
 }
 
 /**
- * Parse `created_at` for sorting/filtering. SoundCloud uses ISO or legacy "2011/06/02 13:44:54 +0000".
+ * Parse `created_at` (upload time). SoundCloud uses ISO or legacy "2011/06/02 13:44:54 +0000".
  * @returns {number | null} epoch ms, or null if missing / invalid
  */
 function createdAtMs(t) {
@@ -86,15 +86,67 @@ function createdAtMs(t) {
 }
 
 /**
- * Public tracks with a valid `created_at`, newest first (used by GET /api/soundcloud/recent-tracks).
+ * Public release date from SoundCloud metadata (`release_year` / `release_month` / `release_day`).
+ * Month/day default to 1 when year is set but they are missing.
+ * @returns {number | null} UTC midnight epoch ms, or null if no release year
+ */
+function releaseDateMs(t) {
+  const y = t?.release_year;
+  if (typeof y !== "number" || !Number.isFinite(y) || y < 1) return null;
+  const m =
+    typeof t?.release_month === "number" &&
+    t.release_month >= 1 &&
+    t.release_month <= 12
+      ? t.release_month
+      : 1;
+  const d =
+    typeof t?.release_day === "number" &&
+    t.release_day >= 1 &&
+    t.release_day <= 31
+      ? t.release_day
+      : 1;
+  return Date.UTC(y, m - 1, d);
+}
+
+/** Prefer public release metadata; fall back to upload `created_at`. */
+function sortDateMs(t) {
+  return releaseDateMs(t) ?? createdAtMs(t);
+}
+
+/**
+ * @returns {string | null} YYYY-MM-DD from release_* fields, else null
+ */
+function releaseDateIso(t) {
+  const ms = releaseDateMs(t);
+  if (ms == null) return null;
+  const y = t.release_year;
+  const m =
+    typeof t?.release_month === "number" &&
+    t.release_month >= 1 &&
+    t.release_month <= 12
+      ? t.release_month
+      : 1;
+  const d =
+    typeof t?.release_day === "number" &&
+    t.release_day >= 1 &&
+    t.release_day <= 31
+      ? t.release_day
+      : 1;
+  return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+/**
+ * Public tracks sorted by public release date (newest first).
+ * Falls back to `created_at` when release_* metadata is missing.
+ * Used by GET /api/soundcloud/recent-tracks.
  * @param {unknown[]} tracks
  * @param {number} limit
- * @returns {{ title: string, permalink_url: string, playback_count: number | null, created_at: string | null }[]}
+ * @returns {{ title: string, permalink_url: string, playback_count: number | null, release_date: string | null, created_at: string | null }[]}
  */
 export function recentPublicTracks(tracks, limit) {
   const candidates = [...tracks]
-    .filter((t) => isPublicTrack(t) && createdAtMs(t) != null)
-    .sort((a, b) => createdAtMs(b) - createdAtMs(a));
+    .filter((t) => isPublicTrack(t) && sortDateMs(t) != null)
+    .sort((a, b) => sortDateMs(b) - sortDateMs(a));
 
   const out = [];
   for (const t of candidates) {
@@ -106,6 +158,7 @@ export function recentPublicTracks(tracks, limit) {
       permalink_url: url,
       playback_count:
         typeof t?.playback_count === "number" ? t.playback_count : null,
+      release_date: releaseDateIso(t),
       created_at: typeof t?.created_at === "string" ? t.created_at : null,
     });
   }

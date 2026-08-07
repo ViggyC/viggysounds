@@ -2,6 +2,14 @@
 # Optional per track: beatport — store URL (shown as a Beatport button when set).
 category: original
 tracks:
+  - title: "REIGN FIRE"
+    releaseDate: "2026-07-31"
+    soundcloud: "https://soundcloud.com/viggysounds/reign-fire"
+    spotify: "https://open.spotify.com/track/2qEXeo0kGacoiNP2zHrS69?si=4ef1877569d94986"
+    beatport: "https://www.beatport.com/release/reign-fire/7211547"
+    coverArt: "media/cover-art/REIGNFIRE.png"
+    description: "Cinematic Bass Music, for Dragon Riders"
+
   - title: "Hans Zimmer - TIME (VIGGY FLIP)"
     releaseDate: "2026-06-02"
     soundcloud: "https://soundcloud.com/viggysounds/time"

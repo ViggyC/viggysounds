@@ -917,7 +917,8 @@ app.get("/api/soundcloud/top-tracks", async (req, res) => {
 
 /**
  * SoundCloud: GET /api/soundcloud/recent-tracks?limit=5
- * Public uploads only (`sharing` === "public"), valid `created_at`, newest first.
+ * Public tracks only (`sharing` === "public"), sorted by public release date
+ * (`release_year` / `release_month` / `release_day`), falling back to `created_at`.
  */
 app.get("/api/soundcloud/recent-tracks", async (req, res) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate");

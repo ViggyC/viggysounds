@@ -25,24 +25,34 @@ flowchart LR
   EX --> SP
 ```
 
+
+
+
 | Piece                 | Role                                                                                                       |
 | --------------------- | ---------------------------------------------------------------------------------------------------------- |
 | **Frontend** (`src/`) | React SPA built with Vite; `dist/` is static HTML/CSS/JS.                                                  |
-| **API** (`server/`)   | Express app: proxies Spotify/SoundCloud, handles SoundCloud user OAuth, exposes `/health` and `/api/`\*.   |
+| **API** (`server/`)   | Express app: proxies Spotify/SoundCloud, handles SoundCloud user OAuth, exposes `/health` and `/api/`.     |
 | **Dev**               | Vite dev server proxies `/api` → `http://localhost:3001` (see `vite.config.js`).                           |
 | **Production**        | The static site must know the API origin via `VITE_API_BASE_URL` (see [Frontend env](#frontend-env-vite)). |
+
 
 No database: Spotify uses an in-memory token cache; SoundCloud uses env + optional **JSON token file** on disk (or env-only access token).
 
 ---
 
+
+
 ## Authentication & API flows
+
+
 
 ### Spotify (server only)
 
 - **Flow:** [Client Credentials](https://developer.spotify.com/documentation/web-api/tutorials/client-credentials-flow) — no user login.
 - **Secrets:** `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`.
 - **Usage:** Server obtains an access token, caches it in memory, and calls Web API routes such as `/api/spotify/track/:id` and `/api/spotify/search`.
+
+
 
 ### SoundCloud — two credential layers
 
@@ -52,7 +62,7 @@ No database: Spotify uses an in-memory token cache; SoundCloud uses env + option
 - **Secrets:** `SOUNDCLOUD_CLIENT_ID`, `SOUNDCLOUD_CLIENT_SECRET`.
 - **Usage:** Non-user endpoints, e.g. `/api/soundcloud/tracks/:id`, `/api/soundcloud/resolve`.
 
-2. **User (authorization code + PKCE)**
+1. **User (authorization code + PKCE)**
 
 - Needed for `/me`-style data (e.g. `/api/soundcloud/top-tracks`, `/api/soundcloud/me/tracks`).
 - **Step 1:** Browser or HTTP client opens `GET /api/soundcloud/auth/start` → redirect to SoundCloud authorize.
@@ -61,9 +71,13 @@ No database: Spotify uses an in-memory token cache; SoundCloud uses env + option
 - **Persistence:** Tokens are written to `SOUNDCLOUD_USER_TOKEN_FILE` (default: `server/.soundcloud-user-tokens.json`, gitignored). Access tokens refresh using the stored refresh token when possible.
 - **Fallback:** `SOUNDCLOUD_USER_ACCESS_TOKEN` can override the access token if you cannot persist a file (you must refresh manually when it expires).
 
+
+
 ### CORS
 
 - `CORS_ORIGIN`**:** Comma-separated list of browser origins allowed to call the API. Must include your static site origin in production (e.g. `https://youruser.github.io`).
+
+
 
 ### Health check
 
@@ -71,19 +85,26 @@ No database: Spotify uses an in-memory token cache; SoundCloud uses env + option
 
 ---
 
+
+
 ## Frontend env (Vite)
 
 Copy `.env.example` to `.env` at the repo root if needed.
+
 
 | Variable            | Purpose                                                                                                                                                                           |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `VITE_API_BASE_URL` | Full origin of the deployed API, **no trailing slash** (e.g. `https://viggysounds-api.fly.dev`). If unset, the app uses relative `/api/...` (works with the Vite dev proxy only). |
 
+
 ---
+
+
 
 ## Server env
 
 Copy `server/.env.example` to `server/.env`.
+
 
 | Variable                                           | Purpose                                                                                                                                                                                                                         |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -95,7 +116,10 @@ Copy `server/.env.example` to `server/.env`.
 | `SOUNDCLOUD_USER_TOKEN_FILE`                       | Optional absolute path for persisted user OAuth tokens (use a file on a **mounted volume** on Fly so tokens survive restarts).                                                                                                  |
 | `SOUNDCLOUD_USER_ACCESS_TOKEN`                     | Optional short-term override if you cannot use the token file.                                                                                                                                                                  |
 
+
 ---
+
+
 
 ## Local dev
 
@@ -121,6 +145,8 @@ Vite proxies `/api` → `http://localhost:3001`.
 
 ---
 
+
+
 ## Build
 
 ```bash
@@ -130,6 +156,8 @@ npm run build
 Output: `dist/`.
 
 ---
+
+
 
 ## Customize your content
 
@@ -141,6 +169,8 @@ Edit `src/data/epk.js`:
 - `youtubeVideos` (`videoId` only)
 - `socials`
 - `contact.email`
+
+
 
 ## Media — show photos (automatic)
 
@@ -159,7 +189,19 @@ Each YAML file has:
 - `tracks`: an array of tracks with optional `url`, `spotify`, `soundcloud`, and `description`
 - `coverArt`: (optional) string path to a local image, e.g. `media/cover-art/my-track.jpg`
 
+### Optimize cover art
+
+Drop source images into `public/media/cover-art/`, then resize/compress them before committing (keeps page load fast):
+
+```bash
+npm run optimize:covers
+```
+
+This rewrites files in place (max 800×800). Run it whenever you add or replace cover art.
+
 ---
+
+
 
 ## Deploy static site (GitHub Pages)
 
@@ -178,6 +220,8 @@ env:
 ```
 
 ---
+
+
 
 ## Deploy API on [Fly.io](http://Fly.io)
 
@@ -270,8 +314,8 @@ Deploy again after scaling. For HA with multiple Machines, provision **one volum
 
 ---
 
+
+
 ## Deploy to GitHub Pages (summary)
 
 Push to `main` / `master` and let `.github/workflows/deploy.yml` run, after you have configured Pages and (if needed) `VITE_API_BASE_URL` for the build.
-
-npm run optimize:covers

@@ -1,6 +1,12 @@
 # Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
 category: remix
 tracks:
+  - title: "his name is VIGGY"
+    releaseDate: "2026-07-21"
+    soundcloud: "https://soundcloud.com/viggysounds/his-name-is-viggy"
+    coverArt: "media/cover-art/hisnameis.png"
+    description: "I shouldda won 🤷🏾‍♂️"
+
   - title: "Fatboy Slim - Star 69 (VIGGY FLIP) "
     releaseDate: "2026-06-23"
     soundcloud: "https://soundcloud.com/viggysounds/fatboy-slim-star-69-viggy-flip"

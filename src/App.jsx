@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa";
-import { SiBeatport, SiInstagram, SiSoundcloud, SiSpotify } from "react-icons/si";
+import {
+  SiBeatport,
+  SiInstagram,
+  SiSoundcloud,
+  SiSpotify,
+} from "react-icons/si";
 import { EPK } from "./data/epk.js";
 import showPhotos from "./generated/showPhotos.json";
 import yaml from "js-yaml";
 import originalsYamlRaw from "./data/music/originals.yaml?raw";
 import remixesYamlRaw from "./data/music/remixes.yaml?raw";
-import { SOUNDCLOUD_EMBED_FALLBACK } from "./data/soundcloudTopTracks.js";
 
 /** Same-origin `/api` in dev (Vite proxy); full URL when `VITE_API_BASE_URL` is set. */
 function apiRelativeUrl(path) {
@@ -83,11 +87,7 @@ function parseShowLastLocalDay(dateStr) {
 function isShowPast(dateStr, now = new Date()) {
   const lastDay = parseShowLastLocalDay(dateStr);
   if (!lastDay) return false;
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  );
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return todayStart > lastDay;
 }
 
@@ -198,10 +198,20 @@ function formatPlayCount(n) {
   return new Intl.NumberFormat(undefined).format(n);
 }
 
-/** SoundCloud API `created_at` ISO string → short display date */
-function formatSoundcloudCreatedAt(iso) {
+/** SoundCloud API date string (release YYYY-MM-DD or created_at) → short display */
+function formatSoundcloudDate(iso) {
   if (iso == null || typeof iso !== "string") return null;
-  const d = new Date(iso);
+  const s = iso.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const d = new Date(`${s}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return null;
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(d);
+  }
+  const d = new Date(s.includes("/") ? s.replace(/\//g, "-") : s);
   if (Number.isNaN(d.getTime())) return null;
   return new Intl.DateTimeFormat(undefined, {
     year: "numeric",
@@ -587,7 +597,7 @@ export default function App() {
   );
   const [musicExpanded, setMusicExpanded] = useState({});
   const [soundcloudPanelOpen, setSoundcloudPanelOpen] = useState(false);
-  /** SoundCloud list mode: top by plays vs newest public uploads */
+  /** SoundCloud list mode: top by plays vs newest by public release date */
   const [soundcloudListTab, setSoundcloudListTab] = useState("plays");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -871,7 +881,7 @@ export default function App() {
     };
   }, []);
 
-  /** API rows: playback_count and/or created_at; fallback on plays-only when API fails */
+  /** API rows: playback_count and/or release_date */
   const soundcloudEmbedItems = useMemo(() => {
     const src =
       soundcloudListTab === "plays" ? soundcloudPlays : soundcloudRecent;
@@ -882,21 +892,23 @@ export default function App() {
           title: typeof t.title === "string" ? t.title : "",
           playbackCount:
             typeof t.playback_count === "number" ? t.playback_count : null,
+          releaseDate:
+            typeof t.release_date === "string" ? t.release_date : null,
           createdAt: typeof t.created_at === "string" ? t.created_at : null,
         }))
         .filter((x) => x.url);
     }
-    if (src.status === "loading") return [];
-    if (soundcloudListTab === "plays" && src.status === "error") {
-      return SOUNDCLOUD_EMBED_FALLBACK.map((u) => ({
-        url: u,
-        title: "",
-        playbackCount: null,
-        createdAt: null,
-      }));
-    }
     return [];
   }, [soundcloudListTab, soundcloudPlays, soundcloudRecent]);
+
+  const soundcloudProfileHref = useMemo(() => {
+    const s = EPK.socials?.find(
+      (x) => String(x.label || "").toLowerCase() === "soundcloud",
+    );
+    return typeof s?.href === "string" && /^https?:\/\//i.test(s.href.trim())
+      ? s.href.trim()
+      : "https://soundcloud.com/viggysounds";
+  }, []);
 
   const originalsTracks = useMemo(
     () => parseMusicYaml(originalsYamlRaw, "original"),
@@ -1105,16 +1117,14 @@ export default function App() {
                         <span className="soundcloudPanelMeta">
                           {soundcloudListTab === "plays"
                             ? "Top tracks by play count"
-                            : "Most recent public uploads"}
+                            : "Most recent by release date"}
                         </span>
                       );
                     }
                     if (src.status === "error") {
                       return (
                         <span className="soundcloudPanelMeta">
-                          {soundcloudListTab === "plays"
-                            ? "Could not load — showing fallbacks"
-                            : "Could not load recent tracks"}
+                          Could not load tracks
                         </span>
                       );
                     }
@@ -1179,7 +1189,9 @@ export default function App() {
                       >
                         {item.title ||
                         formatPlayCount(item.playbackCount) != null ||
-                        formatSoundcloudCreatedAt(item.createdAt) ? (
+                        formatSoundcloudDate(
+                          item.releaseDate || item.createdAt,
+                        ) ? (
                           <div className="soundcloudWidgetTrackMeta">
                             {item.title ? (
                               <span className="soundcloudWidgetTrackTitle">
@@ -1188,8 +1200,8 @@ export default function App() {
                             ) : null}
                             {soundcloudListTab === "recent" ? (
                               (() => {
-                                const dateStr = formatSoundcloudCreatedAt(
-                                  item.createdAt,
+                                const dateStr = formatSoundcloudDate(
+                                  item.releaseDate || item.createdAt,
                                 );
                                 const playsStr =
                                   formatPlayCount(item.playbackCount) != null
@@ -1237,22 +1249,31 @@ export default function App() {
                     Loading players…
                   </p>
                 ) : soundcloudPanelOpen && soundcloudEmbedItems.length === 0 ? (
-                  <p className="soundcloudPanelBodyLoading" role="status">
-                    {(() => {
-                      const src =
-                        soundcloudListTab === "plays"
-                          ? soundcloudPlays
-                          : soundcloudRecent;
-                      if (src.status === "error") {
+                  <div className="soundcloudPanelEmpty">
+                    <p className="soundcloudPanelBodyLoading" role="status">
+                      {(() => {
+                        const src =
+                          soundcloudListTab === "plays"
+                            ? soundcloudPlays
+                            : soundcloudRecent;
+                        if (src.status === "error") {
+                          return "Could not load tracks from the API.";
+                        }
                         return soundcloudListTab === "plays"
-                          ? "Could not load tracks."
-                          : "Could not load recent tracks.";
-                      }
-                      return soundcloudListTab === "plays"
-                        ? "No tracks to show."
-                        : "No public tracks to show.";
-                    })()}
-                  </p>
+                          ? "No tracks to show."
+                          : "No public tracks to show.";
+                      })()}
+                    </p>
+                    <a
+                      className="pillBtn pillBtnSoundcloud"
+                      href={soundcloudProfileHref}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <SiSoundcloud className="pillBtnIcon" aria-hidden />
+                      Open SoundCloud
+                    </a>
+                  </div>
                 ) : null}
               </div>
             </div>
@@ -1516,10 +1537,7 @@ export default function App() {
                       rel="noreferrer"
                       aria-label={`Instagram highlights — ${s.title}`}
                     >
-                      <SiInstagram
-                        className="pillBtnIcon"
-                        aria-hidden
-                      />
+                      <SiInstagram className="pillBtnIcon" aria-hidden />
                       Highlights
                     </a>
                   ) : (
