@@ -46,6 +46,14 @@ export const EPK = {
   // Optional: `href` + `statusLabel` (tickets), `instagram` (highlights when past).
   shows: [
     {
+      date: "September 18th, 2026",
+      title: "BRMG",
+      venue: "Warehouse",
+      city: "Loveland, CO",
+      tickets:
+        "https://www.eventbrite.com/e/brmg-presents-waylo-tickets-1997614133648",
+    },
+    {
       date: "July 10-11, 2026",
       title: "QForest",
       venue: "Lake George, CO",

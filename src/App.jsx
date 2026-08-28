@@ -1484,31 +1484,40 @@ export default function App() {
             <h2>Shows</h2>
           </div>
           <div className="showList">
-            {upcoming.map((s) => (
-              <div key={s.date + s.title} className="showCard">
-                <div className="showDate">{formatDate(s.date)}</div>
-                <div className="showInfo">
-                  <div className="showTitle">{s.title}</div>
-                  <div className="showVenue">
-                    {s.venue} · {s.city}
+            {upcoming.map((s) => {
+              const showLink =
+                typeof s.href === "string"
+                  ? s.href.trim()
+                  : typeof s.tickets === "string"
+                    ? s.tickets.trim()
+                    : "";
+
+              return (
+                <div key={s.date + s.title} className="showCard">
+                  <div className="showDate">{formatDate(s.date)}</div>
+                  <div className="showInfo">
+                    <div className="showTitle">{s.title}</div>
+                    <div className="showVenue">
+                      {s.venue} · {s.city}
+                    </div>
                   </div>
+                  {showLink ? (
+                    <a
+                      className="pillBtn"
+                      href={showLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {s.statusLabel || "Tickets"}
+                    </a>
+                  ) : (
+                    <div className="pillBtn pillBtnDisabled">
+                      {s.statusLabel || "Details"}
+                    </div>
+                  )}
                 </div>
-                {s.href ? (
-                  <a
-                    className="pillBtn"
-                    href={s.href}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {s.statusLabel || "Tickets"}
-                  </a>
-                ) : (
-                  <div className="pillBtn pillBtnDisabled">
-                    {s.statusLabel || "Details"}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

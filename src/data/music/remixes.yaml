@@ -1,6 +1,12 @@
 # Tracks: optional releaseDate (YYYY-MM-DD) for “latest release” in the Music section.
 category: remix
 tracks:
+  - title: "Blue Foundation - Eyes on Fire (VIGGY FLIP)"
+    releaseDate: "2026-07-21"
+    soundcloud: "https://soundcloud.com/viggysounds/eyes-on-fire-remix"
+    coverArt: "media/cover-art/eyes.png"
+    description: "I will soothe your pain"
+
   - title: "his name is VIGGY"
     releaseDate: "2026-07-21"
     soundcloud: "https://soundcloud.com/viggysounds/his-name-is-viggy"
