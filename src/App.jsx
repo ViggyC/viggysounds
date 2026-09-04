@@ -21,14 +21,6 @@ function apiRelativeUrl(path) {
   return base ? `${base}${p}` : p;
 }
 
-function formatTrackDurationMs(ms) {
-  if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) return "—";
-  const totalSec = Math.round(ms / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
-
 /**
  * Epoch ms for sorting show lists. Supports YYYY-MM-DD and common display strings
  * in `date` (e.g. "April 16th, 2026", "July 10-11, 2026" uses the first day).
@@ -241,7 +233,7 @@ function isTrackReleaseUpcoming(t) {
   return release > today;
 }
 
-function MusicLinksRow({ track: t }) {
+function MusicLinksRow({ track: t, className = "" }) {
   const upcoming = isTrackReleaseUpcoming(t);
   const presaveUrl =
     typeof t.presave === "string" && isValidStreamingUrl(t.presave)
@@ -253,13 +245,14 @@ function MusicLinksRow({ track: t }) {
   const beatportUrl = isValidStreamingUrl(t.beatport)
     ? t.beatport.trim()
     : null;
+  const rowClass = ["musicLinksRow", className].filter(Boolean).join(" ");
 
   if (upcoming) {
     if (!presaveUrl && !soundcloudUrl && !beatportUrl) {
-      return <div className="musicLinksRow" />;
+      return <div className={rowClass} />;
     }
     return (
-      <div className="musicLinksRow">
+      <div className={rowClass}>
         {presaveUrl ? (
           <a
             className="musicChip musicChipPresave musicChipCompactLabel"
@@ -297,7 +290,7 @@ function MusicLinksRow({ track: t }) {
   }
 
   return (
-    <div className="musicLinksRow">
+    <div className={rowClass}>
       {t.url && isValidStreamingUrl(t.url) ? (
         <a
           className="musicChip musicChipIconOnly"
@@ -346,115 +339,262 @@ function MusicLinksRow({ track: t }) {
   );
 }
 
-function HeroSpotifyPlaylistStrip({ playlists, nested = false }) {
-  const embedRef = useRef(null);
-  const heroSpotifyStacked = useMediaQuery("(max-width: 899px)");
-  const prefersReducedMotion = useMediaQuery(
-    "(prefers-reduced-motion: reduce)",
-  );
-  const [activePlaylistId, setActivePlaylistId] = useState(
-    () => playlists[0]?.id ?? null,
-  );
+/** Horizontal SoundCloud player carousel (top plays / recent). */
+function SoundcloudCarousel({
+  items,
+  status,
+  listTab,
+  onListTabChange,
+  profileHref,
+  prefersReducedMotion = false,
+}) {
+  const trackRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    setActivePlaylistId((prev) =>
-      playlists.some((p) => p.id === prev) ? prev : (playlists[0]?.id ?? null),
-    );
-  }, [playlists]);
+    setActiveIndex(0);
+    const el = trackRef.current;
+    if (el) el.scrollTo({ left: 0, behavior: "auto" });
+  }, [listTab, items]);
 
   useEffect(() => {
-    if (!heroSpotifyStacked || !activePlaylistId || !embedRef.current) return;
-    embedRef.current.scrollIntoView({
+    const el = trackRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const slides = el.querySelectorAll(".soundcloudCarouselSlide");
+      if (!slides.length) return;
+      const mid = el.scrollLeft + el.clientWidth / 2;
+      let best = 0;
+      let bestDist = Infinity;
+      slides.forEach((slide, i) => {
+        const center = slide.offsetLeft + slide.offsetWidth / 2;
+        const d = Math.abs(center - mid);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
+      });
+      setActiveIndex(best);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [items]);
+
+  const scrollToIndex = (index) => {
+    const el = trackRef.current;
+    if (!el) return;
+    const slides = el.querySelectorAll(".soundcloudCarouselSlide");
+    const slide = slides[index];
+    if (!slide) return;
+    slide.scrollIntoView({
       behavior: prefersReducedMotion ? "auto" : "smooth",
+      inline: "center",
       block: "nearest",
     });
-  }, [activePlaylistId, prefersReducedMotion, heroSpotifyStacked]);
+    setActiveIndex(index);
+  };
 
-  const activePlaylist =
-    playlists.find((p) => p.id === activePlaylistId) ?? null;
-  const embedSrc = activePlaylistId
-    ? `https://open.spotify.com/embed/playlist/${encodeURIComponent(activePlaylistId)}?utm_source=generator&theme=0`
-    : null;
+  const go = (delta) => {
+    if (!items.length) return;
+    const next = Math.max(0, Math.min(items.length - 1, activeIndex + delta));
+    scrollToIndex(next);
+  };
 
-  const showPicker = playlists.length > 1;
-  const HeadingTag = nested ? "h3" : "h2";
+  const metaLabel =
+    listTab === "plays" ? "Top by plays" : "Most recent releases";
 
   return (
-    <div className="heroPlaylists" aria-labelledby="hero-playlists-heading">
-      <div className="heroPlaylistsTop">
-        <HeadingTag
-          id="hero-playlists-heading"
-          className={`heroPlaylistsTitle${nested ? " heroPlaylistsTitleNested" : ""}`}
+    <div className="soundcloudCarousel" aria-label="SoundCloud">
+      <div className="soundcloudCarouselTop">
+        <div className="soundcloudCarouselHeading">
+          <h3 className="soundcloudCarouselTitle">
+            <SiSoundcloud className="soundcloudCarouselTitleIcon" aria-hidden />
+            SoundCloud
+          </h3>
+          <p className="soundcloudCarouselHint">{metaLabel}</p>
+        </div>
+        <div
+          className="soundcloudCarouselModes"
+          role="tablist"
+          aria-label="SoundCloud lists"
         >
-          <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
-          Spotify playlists
-        </HeadingTag>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={listTab === "plays"}
+            className={`soundcloudCarouselMode${listTab === "plays" ? " soundcloudCarouselModeActive" : ""}`}
+            onClick={() => onListTabChange("plays")}
+          >
+            Top plays
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={listTab === "recent"}
+            className={`soundcloudCarouselMode${listTab === "recent" ? " soundcloudCarouselModeActive" : ""}`}
+            onClick={() => onListTabChange("recent")}
+          >
+            Recent
+          </button>
+        </div>
       </div>
-      {showPicker ? (
-        <>
-          <p className="heroPlaylistsHint" id="hero-playlists-hint">
-            Choose a playlist — play and browse tracks in the player.
-          </p>
-          <ul className="heroPlaylistsChips">
-            {playlists.map((p) => (
-              <li key={p.id} className="heroPlaylistChipLi">
-                <button
-                  type="button"
-                  className={`heroPlaylistChip${activePlaylistId === p.id ? " heroPlaylistChipActive" : ""}`}
-                  onClick={() => setActivePlaylistId(p.id)}
-                  aria-pressed={activePlaylistId === p.id}
-                  aria-describedby="hero-playlists-hint"
-                >
-                  <span className="heroPlaylistChipLabel">{p.name}</span>
-                  {p.tracksTotal != null ? (
-                    <span className="heroPlaylistChipMeta">
-                      {p.tracksTotal} tracks
-                    </span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
+
+      {status === "loading" && items.length === 0 ? (
+        <p className="soundcloudCarouselStatus" role="status">
+          Loading SoundCloud…
+        </p>
       ) : null}
 
-      {embedSrc && activePlaylist ? (
-        <div
-          ref={embedRef}
-          className={`heroPlaylistEmbedShell${showPicker ? "" : " heroPlaylistEmbedShellFirst"}`}
-          aria-label={`Spotify player: ${activePlaylist.name}`}
-        >
-          <div className="heroPlaylistEmbedFrame">
-            <iframe
-              title={`Spotify — ${activePlaylist.name}`}
-              src={embedSrc}
-              loading="lazy"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
-          </div>
+      {status === "error" && items.length === 0 ? (
+        <div className="soundcloudCarouselEmpty">
+          <p className="soundcloudCarouselStatus">Could not load tracks.</p>
+          <a
+            className="pillBtn pillBtnSoundcloud"
+            href={profileHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <SiSoundcloud className="pillBtnIcon" aria-hidden />
+            Open SoundCloud
+          </a>
         </div>
+      ) : null}
+
+      {status !== "error" && status !== "loading" && items.length === 0 ? (
+        <div className="soundcloudCarouselEmpty">
+          <p className="soundcloudCarouselStatus">No tracks to show.</p>
+          <a
+            className="pillBtn pillBtnSoundcloud"
+            href={profileHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <SiSoundcloud className="pillBtnIcon" aria-hidden />
+            Open SoundCloud
+          </a>
+        </div>
+      ) : null}
+
+      {items.length > 0 ? (
+        <>
+          <div className="soundcloudCarouselViewport">
+            {items.length > 1 ? (
+              <button
+                type="button"
+                className="soundcloudCarouselNav soundcloudCarouselNavPrev"
+                onClick={() => go(-1)}
+                disabled={activeIndex <= 0}
+                aria-label="Previous track"
+              >
+                ‹
+              </button>
+            ) : null}
+            <div
+              className="soundcloudCarouselTrack"
+              ref={trackRef}
+              tabIndex={0}
+              aria-label="SoundCloud tracks"
+            >
+              {items.map((item, i) => {
+                const dateStr =
+                  listTab === "recent"
+                    ? formatSoundcloudDate(item.releaseDate || item.createdAt)
+                    : null;
+                const playsStr =
+                  formatPlayCount(item.playbackCount) != null
+                    ? `${formatPlayCount(item.playbackCount)} plays`
+                    : null;
+                const meta = [dateStr, playsStr].filter(Boolean).join(" · ");
+                return (
+                  <article
+                    key={`${listTab}-${item.url}-${i}`}
+                    className="soundcloudCarouselSlide"
+                    aria-roledescription="slide"
+                    aria-label={
+                      item.title
+                        ? `${item.title}${meta ? `, ${meta}` : ""}`
+                        : `Track ${i + 1}`
+                    }
+                  >
+                    {item.title || meta ? (
+                      <div className="soundcloudCarouselSlideMeta">
+                        {item.title ? (
+                          <span className="soundcloudCarouselSlideTitle">
+                            {item.title}
+                          </span>
+                        ) : null}
+                        {meta ? (
+                          <span className="soundcloudCarouselSlidePlays">
+                            {meta}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <iframe
+                      title={
+                        item.title
+                          ? `${item.title} (SoundCloud)`
+                          : `SoundCloud ${i + 1}`
+                      }
+                      className="soundcloudEmbed"
+                      width="100%"
+                      height="166"
+                      scrolling="no"
+                      frameBorder="no"
+                      allow="autoplay"
+                      src={soundcloudPlayerSrc(item.url)}
+                      loading={i === 0 ? "eager" : "lazy"}
+                    />
+                  </article>
+                );
+              })}
+            </div>
+            {items.length > 1 ? (
+              <button
+                type="button"
+                className="soundcloudCarouselNav soundcloudCarouselNavNext"
+                onClick={() => go(1)}
+                disabled={activeIndex >= items.length - 1}
+                aria-label="Next track"
+              >
+                ›
+              </button>
+            ) : null}
+          </div>
+          {items.length > 1 ? (
+            <div
+              className="soundcloudCarouselDots"
+              role="tablist"
+              aria-label="Track position"
+            >
+              {items.map((_, i) => (
+                <button
+                  key={`dot-${i}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === activeIndex}
+                  aria-label={`Go to track ${i + 1}`}
+                  className={`soundcloudCarouselDot${i === activeIndex ? " soundcloudCarouselDotActive" : ""}`}
+                  onClick={() => scrollToIndex(i)}
+                />
+              ))}
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
   );
 }
 
-/** GET /api/spotify/artist/tracks (catalog); uses .spotifyCatalog styles */
-function SpotifyArtistCatalog({
-  status,
-  tracks,
-  meta,
-  nested = false,
-  artist = null,
-}) {
-  const [openTrackId, setOpenTrackId] = useState(null);
+/** Spotify artist embed via GET /api/spotify/artist/tracks (catalog meta). */
+function SpotifyArtistCatalog({ status, meta, nested = false }) {
   const HeadingTag = nested ? "h3" : "h2";
 
   if (status === "loading") {
     return (
       <div className="spotifyCatalog" aria-busy="true">
         <p className="spotifyCatalogHint" role="status">
-          Loading artist catalog…
+          Loading Spotify…
         </p>
       </div>
     );
@@ -464,7 +604,7 @@ function SpotifyArtistCatalog({
     return (
       <div className="spotifyCatalog">
         <p className="musicSpotifyError" role="alert">
-          Could not load Spotify catalog. Configure{" "}
+          Could not load Spotify. Configure{" "}
           <code className="musicSpotifyCode">SPOTIFY_CLIENT_ID</code> /{" "}
           <code className="musicSpotifyCode">SPOTIFY_CLIENT_SECRET</code> and{" "}
           <code className="musicSpotifyCode">SPOTIFY_ARTIST_ID</code> in{" "}
@@ -475,98 +615,32 @@ function SpotifyArtistCatalog({
     );
   }
 
-  // Allow rendering when Spotify returned `mode=top` even if tracks are empty.
-  // For manual/other modes, render the catalog unless there's an error so
-  // the artist catalog (or helpful empty-state) remains visible.
-  if (!(meta && meta.mode === "top")) {
-    if (status === "error") {
-      return null;
-    }
-  }
-
-  // If server returned top-mode with artist info, render embedded artist player
-  if (meta && meta.mode === "top") {
-    const finalArtist =
-      artist || (typeof meta === "object" && meta.artist)
-        ? meta.artist
-        : artist || null;
-    const artistIdToUse = finalArtist?.id || meta?.artistId || null;
-
-    return (
-      <div className="spotifyCatalog" aria-label="Spotify top tracks">
-        <div className="spotifyCatalogTop">
-          <HeadingTag
-            className={`spotifyCatalogTitle${nested ? " spotifyCatalogTitleNested" : ""}`}
-          >
-            <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
-            Top Tracks
-          </HeadingTag>
-          {finalArtist && finalArtist.name ? (
-            <p className="spotifyCatalogArtist">{finalArtist.name}</p>
-          ) : null}
-          {meta?.note ? (
-            <p className="spotifyCatalogHint">{meta.note}</p>
-          ) : null}
-        </div>
-        <div className="spotifyArtistEmbed">
-          {finalArtist && finalArtist.imageUrl ? (
-            <img
-              className="spotifyArtistImage"
-              src={finalArtist.imageUrl}
-              alt={finalArtist.name || "Artist"}
-              loading="lazy"
-            />
-          ) : null}
-          {artistIdToUse ? (
-            <div className="heroPlaylistEmbedFrame">
-              <iframe
-                title={`Spotify — ${finalArtist?.name || "artist"}`}
-                src={`https://open.spotify.com/embed/artist/${encodeURIComponent(artistIdToUse)}?utm_source=generator&theme=0`}
-                loading="lazy"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            </div>
-          ) : (
-            <p className="spotifyCatalogHint">Artist embed unavailable.</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  const artistLine =
+  const artistId =
+    typeof meta?.artistId === "string" && meta.artistId.trim()
+      ? meta.artistId.trim()
+      : null;
+  const artistName =
     typeof meta?.artistName === "string" && meta.artistName.trim()
       ? meta.artistName.trim()
       : null;
+  const artistImageUrl =
+    typeof meta?.artistImageUrl === "string" && meta.artistImageUrl.trim()
+      ? meta.artistImageUrl.trim()
+      : null;
   const hint =
-    typeof meta?.note === "string" && meta.note.trim()
-      ? meta.note.trim()
-      : typeof meta?.albumsScanned === "number" && meta.albumsScanned > 0
-        ? `${meta.albumsScanned} release${meta.albumsScanned === 1 ? "" : "s"} in catalog · tap a row to preview`
-        : "Tap a row to preview in the player";
+    typeof meta?.albumsScanned === "number" && meta.albumsScanned > 0
+      ? `${meta.albumsScanned} release${meta.albumsScanned === 1 ? "" : "s"} on Spotify`
+      : "Play and browse tracks in the Spotify player";
 
-  // If there are no tracks, show an explicit empty state so the section
-  // remains visible (useful when using manual mode or when playlists are shown).
-  if (!Array.isArray(tracks) || tracks.length === 0) {
+  if (!artistId) {
     return (
-      <div className="spotifyCatalog" aria-label="Spotify artist catalog">
-        <div className="spotifyCatalogTop">
-          <HeadingTag
-            className={`spotifyCatalogTitle${nested ? " spotifyCatalogTitleNested" : ""}`}
-          >
-            <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
-            Tracks on Spotify
-          </HeadingTag>
-          {artistLine ? (
-            <p className="spotifyCatalogArtist">{artistLine}</p>
-          ) : null}
-          <p className="spotifyCatalogHint">{hint}</p>
-        </div>
+      <div className="spotifyCatalog" aria-label="Spotify artist">
         <div className="spotifyCatalogEmpty">
           <p className="muted">
-            No artist tracks available. Add Spotify links to your music YAML or
-            configure SPOTIFY_TOP_TRACK_IDS in the server environment.
+            No artist id returned. Set{" "}
+            <code className="musicSpotifyCode">SPOTIFY_ARTIST_ID</code> in{" "}
+            <code className="musicSpotifyCode">server/.env</code> and restart
+            the API.
           </p>
         </div>
       </div>
@@ -574,103 +648,37 @@ function SpotifyArtistCatalog({
   }
 
   return (
-    <div className="spotifyCatalog" aria-label="Spotify artist catalog">
+    <div className="spotifyCatalog" aria-label="Spotify artist">
       <div className="spotifyCatalogTop">
         <HeadingTag
           className={`spotifyCatalogTitle${nested ? " spotifyCatalogTitleNested" : ""}`}
         >
           <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
-          Tracks on Spotify
+          {artistName ? (
+            <p className="spotifyCatalogArtist">{artistName}</p>
+          ) : null}
         </HeadingTag>
-        {artistLine ? (
-          <p className="spotifyCatalogArtist">{artistLine}</p>
-        ) : null}
         <p className="spotifyCatalogHint">{hint}</p>
       </div>
-      <ul className="spotifyCatalogList">
-        {tracks.map((t, idx) => {
-          const id = typeof t?.id === "string" ? t.id : null;
-          const name = typeof t?.name === "string" ? t.name : "Untitled";
-          const url =
-            typeof t?.spotifyUrl === "string" && t.spotifyUrl
-              ? t.spotifyUrl
-              : id
-                ? `https://open.spotify.com/track/${encodeURIComponent(id)}`
-                : null;
-          const artists = Array.isArray(t?.artists)
-            ? t.artists
-                .map((a) => (typeof a?.name === "string" ? a.name : ""))
-                .filter(Boolean)
-                .join(", ")
-            : "";
-          const albumName =
-            t?.album && typeof t.album.name === "string" ? t.album.name : "";
-          const dur = formatTrackDurationMs(t?.durationMs);
-          const expanded = id != null && openTrackId === id;
-          const canPreview = Boolean(id);
-
-          return (
-            <li
-              key={id || `spotify-catalog-${idx}`}
-              className="spotifyCatalogRow"
-            >
-              <div className="spotifyCatalogRowInner">
-                <button
-                  type="button"
-                  className={`spotifyCatalogRowBtn${expanded ? " spotifyCatalogRowBtnActive" : ""}`}
-                  disabled={!canPreview}
-                  aria-expanded={canPreview ? expanded : undefined}
-                  onClick={() => {
-                    if (!canPreview) return;
-                    setOpenTrackId((prev) => (prev === id ? null : id));
-                  }}
-                >
-                  <div className="spotifyCatalogMain">
-                    <span className="spotifyCatalogTrackName">{name}</span>
-                    {t?.explicit ? (
-                      <span className="spotifyCatalogExplicit" title="Explicit">
-                        E
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="spotifyCatalogDetails">
-                    {artists ? (
-                      <span className="spotifyCatalogArtists">{artists}</span>
-                    ) : null}
-                    {albumName ? (
-                      <span className="spotifyCatalogAlbum">{albumName}</span>
-                    ) : null}
-                    <span className="spotifyCatalogDur">{dur}</span>
-                  </div>
-                </button>
-                {url ? (
-                  <a
-                    className="spotifyCatalogRowOpen"
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open
-                  </a>
-                ) : null}
-              </div>
-              {expanded && id ? (
-                <div className="spotifyCatalogEmbed">
-                  <div className="heroPlaylistEmbedFrame">
-                    <iframe
-                      title={`Spotify — ${name}`}
-                      src={`https://open.spotify.com/embed/track/${encodeURIComponent(id)}?utm_source=generator&theme=0`}
-                      loading="lazy"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="spotifyArtistEmbed">
+        {/* {artistImageUrl ? (
+          <img
+            className="spotifyArtistImage"
+            src={artistImageUrl}
+            alt={artistName || "Artist"}
+            loading="lazy"
+          />
+        ) : null} */}
+        <div className="heroPlaylistEmbedFrame">
+          <iframe
+            title={`Spotify — ${artistName || "artist"}`}
+            src={`https://open.spotify.com/embed/artist/${encodeURIComponent(artistId)}?utm_source=generator&theme=0`}
+            loading="lazy"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -755,14 +763,12 @@ export default function App() {
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [photoSlideIndex, setPhotoSlideIndex] = useState(0);
   const [photoSlidePaused, setPhotoSlidePaused] = useState(false);
-  const [musicFilter, setMusicFilter] = useState("original"); // original | remix | soundcloud | spotify
+  const [musicFilter, setMusicFilter] = useState("original"); // original | remix
   /** Narrow viewports: compact music rows + photo slideshow (grid on wider screens) */
   const musicCompact = useMediaQuery("(max-width: 560px)");
   const prefersReducedMotion = useMediaQuery(
     "(prefers-reduced-motion: reduce)",
   );
-  const [musicExpanded, setMusicExpanded] = useState({});
-  const [soundcloudPanelOpen, setSoundcloudPanelOpen] = useState(false);
   /** SoundCloud list mode: top by plays vs newest by public release date */
   const [soundcloudListTab, setSoundcloudListTab] = useState("plays");
   const [contactName, setContactName] = useState("");
@@ -771,14 +777,10 @@ export default function App() {
   const [contactStatus, setContactStatus] = useState("idle"); // idle | sending | success | error
   const [contactErrorText, setContactErrorText] = useState("");
   const [backendOnline, setBackendOnline] = useState(true);
-  const [manualTracks, setManualTracks] = useState({
-    status: "idle",
-    items: [],
-  });
 
   async function pingBackend() {
     try {
-      const url = apiRelativeUrl("/api/spotify/playlists") + "?limit=1";
+      const url = apiRelativeUrl("/health");
       const r = await fetch(url, { cache: "no-store" });
       setBackendOnline(!!r && r.ok);
       return !!r && r.ok;
@@ -929,16 +931,6 @@ export default function App() {
   const activeVideo =
     activeVideoId && EPK.youtubeVideos.find((v) => v.videoId === activeVideoId);
 
-  useEffect(() => {
-    setMusicExpanded({});
-  }, [musicFilter]);
-
-  useEffect(() => {
-    if (musicFilter === "soundcloud") {
-      setSoundcloudPanelOpen(true);
-    }
-  }, [musicFilter]);
-
   const [soundcloudPlays, setSoundcloudPlays] = useState({
     status: "loading",
     tracks: [],
@@ -985,57 +977,15 @@ export default function App() {
     };
   }, []);
 
-  const [heroSpotifyPlaylists, setHeroSpotifyPlaylists] = useState({
-    status: "loading",
-    items: [],
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    const url = `${apiRelativeUrl("/api/spotify/playlists")}?limit=14`;
-    fetch(url, { cache: "no-store" })
-      .then((r) => {
-        if (!r.ok) throw new Error(String(r.status));
-        setBackendOnline(true);
-        return r.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const playlists = Array.isArray(data?.playlists) ? data.playlists : [];
-        const hint = data?.meta?.hint;
-        if (
-          import.meta.env.DEV &&
-          playlists.length === 0 &&
-          typeof hint === "string"
-        ) {
-          console.info("[Spotify playlists]", hint, data?.meta);
-        }
-        setHeroSpotifyPlaylists({
-          status: playlists.length > 0 ? "ok" : "empty",
-          items: playlists,
-        });
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setHeroSpotifyPlaylists({ status: "error", items: [] });
-          setBackendOnline(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const [spotifyArtistCatalog, setSpotifyArtistCatalog] = useState({
     status: "loading",
     tracks: [],
     meta: null,
-    artist: null,
   });
 
   useEffect(() => {
     let cancelled = false;
-    const url = `${apiRelativeUrl("/api/spotify/artist/tracks")}?mode=top&limit=10`;
+    const url = `${apiRelativeUrl("/api/spotify/artist/tracks")}?limit=200`;
     fetch(url, { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
@@ -1044,22 +994,7 @@ export default function App() {
       })
       .then((data) => {
         if (cancelled) return;
-        // If Spotify returns ok:false (e.g., 403 blocked top-tracks) but includes artist/meta,
-        // treat it as usable so the frontend can still render the artist embed.
         if (!data?.ok) {
-          const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
-          if (
-            (data?.artist && (Array.isArray(tracks) || tracks.length === 0)) ||
-            data?.meta
-          ) {
-            setSpotifyArtistCatalog({
-              status: tracks.length > 0 ? "ok" : "empty",
-              tracks,
-              meta: data?.meta ?? null,
-              artist: data?.artist ?? null,
-            });
-            return;
-          }
           setSpotifyArtistCatalog({
             status: "error",
             tracks: [],
@@ -1068,11 +1003,13 @@ export default function App() {
           return;
         }
         const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+        const meta = data?.meta ?? null;
+        const hasArtist =
+          typeof meta?.artistId === "string" && meta.artistId.trim();
         setSpotifyArtistCatalog({
-          status: tracks.length > 0 ? "ok" : "empty",
+          status: hasArtist || tracks.length > 0 ? "ok" : "empty",
           tracks,
-          meta: data?.meta ?? null,
-          artist: data?.artist ?? null,
+          meta,
         });
       })
       .catch(() => {
@@ -1134,24 +1071,6 @@ export default function App() {
         ? remixesTracks
         : [];
 
-  // Derive a list of spotify track ids from all music YAML for fallback use
-  const manualSpotifyTrackIds = useMemo(() => {
-    const all = [...originalsTracks, ...remixesTracks];
-    const ids = [];
-    for (const t of all) {
-      const s = typeof t?.spotify === "string" ? t.spotify.trim() : "";
-      if (!s) continue;
-      const m = s.match(/\/track\/([a-zA-Z0-9]+)/i);
-      if (m && m[1]) {
-        ids.push(m[1]);
-      } else if (/^[a-zA-Z0-9]+$/.test(s) && s.length >= 16 && s.length <= 24) {
-        ids.push(s);
-      }
-      if (ids.length >= 10) break;
-    }
-    return ids;
-  }, [originalsTracks, remixesTracks]);
-
   const latestReleaseTrack = useMemo(() => {
     const dated = musicTracks
       .map((t) => ({ t, d: parseTrackReleaseDate(t.releaseDate) }))
@@ -1173,13 +1092,6 @@ export default function App() {
   const buildLabel = buildSha
     ? `v${buildVersion} · ${buildSha}${buildBranch ? ` · ${buildBranch}` : ""}`
     : `v${buildVersion}`;
-
-  const showSpotifyPlaylistsBlock =
-    heroSpotifyPlaylists.status === "ok" &&
-    heroSpotifyPlaylists.items.length > 0;
-  const spotifyPlaylistsLoading = heroSpotifyPlaylists.status === "loading";
-  const spotifyPlaylistsError = heroSpotifyPlaylists.status === "error";
-  const spotifyPlaylistsEmpty = heroSpotifyPlaylists.status === "empty";
 
   return (
     <div className="page">
@@ -1256,8 +1168,8 @@ export default function App() {
             />
             <div className="aboutBody">
               <p className="aboutLead">
-                VIGGY is a Denver-based producer and DJ making bass music with a
-                cinematic edge.
+                VIGGY is a Denver-based producer and DJ making electronic bass
+                music with a cinematic edge.
               </p>
 
               <p>
@@ -1318,399 +1230,90 @@ export default function App() {
             >
               Remixes
             </button>
-            <button
-              type="button"
-              className={`filterBtn ${musicFilter === "soundcloud" ? "filterBtnActive" : ""}`}
-              role="tab"
-              aria-selected={musicFilter === "soundcloud"}
-              onClick={() => setMusicFilter("soundcloud")}
-            >
-              SoundCloud
-            </button>
-            <button
-              type="button"
-              className={`filterBtn ${musicFilter === "spotify" ? "filterBtnActive" : ""}`}
-              role="tab"
-              aria-selected={musicFilter === "spotify"}
-              onClick={() => setMusicFilter("spotify")}
-            >
-              Spotify
-            </button>
           </div>
 
-          {musicFilter === "soundcloud" &&
-          (soundcloudPlays.status === "loading" ||
-            soundcloudRecent.status === "loading" ||
-            soundcloudPlays.tracks.length > 0 ||
-            soundcloudRecent.tracks.length > 0 ||
-            soundcloudPlays.status === "error" ||
-            soundcloudRecent.status === "error") ? (
-            <div
-              className={`soundcloudPanel${soundcloudPanelOpen ? " soundcloudPanelOpen" : ""}`}
-            >
-              <button
-                type="button"
-                className="soundcloudPanelHeader"
-                id="soundcloud-panel-head"
-                aria-expanded={soundcloudPanelOpen}
-                aria-controls="soundcloud-panel-body"
-                onClick={() => setSoundcloudPanelOpen((o) => !o)}
-              >
-                <div className="soundcloudPanelHeaderText">
-                  <span className="soundcloudPanelTitle">SoundCloud</span>
-                  {(() => {
-                    const src =
-                      soundcloudListTab === "plays"
-                        ? soundcloudPlays
-                        : soundcloudRecent;
-                    if (src.status === "loading") {
-                      return (
-                        <span className="soundcloudPanelMeta" role="status">
-                          Loading…
-                        </span>
-                      );
-                    }
-                    if (src.status === "ok") {
-                      return (
-                        <span className="soundcloudPanelMeta">
-                          {soundcloudListTab === "plays"
-                            ? "Top tracks by play count"
-                            : "Most recent by release date"}
-                        </span>
-                      );
-                    }
-                    if (src.status === "error") {
-                      return (
-                        <span className="soundcloudPanelMeta">
-                          Could not load tracks
-                        </span>
-                      );
-                    }
-                    return (
-                      <span className="soundcloudPanelMeta">
-                        {soundcloudListTab === "plays"
-                          ? "No play data yet"
-                          : "No public tracks yet"}
-                      </span>
-                    );
-                  })()}
-                  {soundcloudEmbedItems.length > 0 ? (
-                    <span className="soundcloudPanelCount">
-                      {soundcloudEmbedItems.length}{" "}
-                      {soundcloudEmbedItems.length === 1 ? "track" : "tracks"}
-                    </span>
-                  ) : null}
-                </div>
-                <span className="soundcloudPanelChevron" aria-hidden="true">
-                  ▼
-                </span>
-              </button>
+          {latestReleaseTrack ? (
+            <p className="musicGalleryHint">
+              Latest: <strong>{latestReleaseTrack.title}</strong>
+              {latestReleaseTrack.releaseDate
+                ? ` · ${formatDate(latestReleaseTrack.releaseDate)}`
+                : ""}
+            </p>
+          ) : null}
 
-              <div
-                className="soundcloudSubTabs"
-                role="tablist"
-                aria-label="SoundCloud track lists"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={soundcloudListTab === "plays"}
-                  className={`soundcloudSubTab${soundcloudListTab === "plays" ? " soundcloudSubTabActive" : ""}`}
-                  onClick={() => setSoundcloudListTab("plays")}
+          <div className="musicArtGrid" aria-label="Music releases">
+            {musicTracks.length === 0 ? (
+              <div className="emptyState">
+                No music entries yet. Add tracks in the YAML files.
+              </div>
+            ) : null}
+
+            {musicTracks.map((t, idx) => {
+              const key = `${t.type || "track"}-${t.title}-${idx}`;
+              const isLatest =
+                latestReleaseKey &&
+                `${t.type}-${t.title}-${t.releaseDate}` === latestReleaseKey;
+
+              return (
+                <article
+                  key={key}
+                  className={`musicArtTile${isLatest ? " musicArtTileLatest" : ""}`}
+                  tabIndex={0}
+                  aria-label={t.title}
                 >
-                  Top by plays
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={soundcloudListTab === "recent"}
-                  className={`soundcloudSubTab${soundcloudListTab === "recent" ? " soundcloudSubTabActive" : ""}`}
-                  onClick={() => setSoundcloudListTab("recent")}
-                >
-                  Most recent
-                </button>
-              </div>
-
-              <div
-                id="soundcloud-panel-body"
-                className="soundcloudPanelBody"
-                role="region"
-                aria-labelledby="soundcloud-panel-head"
-                hidden={!soundcloudPanelOpen}
-              >
-                {soundcloudPanelOpen && soundcloudEmbedItems.length > 0 ? (
-                  <ul className="soundcloudWidgetList">
-                    {soundcloudEmbedItems.map((item, i) => (
-                      <li
-                        key={`${soundcloudListTab}-${item.url}-${i}`}
-                        className="soundcloudWidgetItem"
-                      >
-                        {item.title ||
-                        formatPlayCount(item.playbackCount) != null ||
-                        formatSoundcloudDate(
-                          item.releaseDate || item.createdAt,
-                        ) ? (
-                          <div className="soundcloudWidgetTrackMeta">
-                            {item.title ? (
-                              <span className="soundcloudWidgetTrackTitle">
-                                {item.title}
-                              </span>
-                            ) : null}
-                            {soundcloudListTab === "recent" ? (
-                              (() => {
-                                const dateStr = formatSoundcloudDate(
-                                  item.releaseDate || item.createdAt,
-                                );
-                                const playsStr =
-                                  formatPlayCount(item.playbackCount) != null
-                                    ? `${formatPlayCount(item.playbackCount)} plays`
-                                    : null;
-                                const meta = [dateStr, playsStr]
-                                  .filter(Boolean)
-                                  .join(" · ");
-                                return meta ? (
-                                  <span className="soundcloudWidgetPlays">
-                                    {meta}
-                                  </span>
-                                ) : null;
-                              })()
-                            ) : formatPlayCount(item.playbackCount) != null ? (
-                              <span className="soundcloudWidgetPlays">
-                                {formatPlayCount(item.playbackCount)} plays
-                              </span>
-                            ) : null}
-                          </div>
-                        ) : null}
-                        <iframe
-                          title={
-                            item.title
-                              ? `${item.title} (SoundCloud)`
-                              : `SoundCloud ${i + 1}`
-                          }
-                          className="soundcloudEmbed"
-                          width="100%"
-                          height="166"
-                          scrolling="no"
-                          frameBorder="no"
-                          allow="autoplay"
-                          src={soundcloudPlayerSrc(item.url)}
-                          loading="lazy"
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                ) : soundcloudPanelOpen &&
-                  (soundcloudListTab === "plays"
-                    ? soundcloudPlays.status === "loading"
-                    : soundcloudRecent.status === "loading") ? (
-                  <p className="soundcloudPanelBodyLoading" role="status">
-                    Loading players…
-                  </p>
-                ) : soundcloudPanelOpen && soundcloudEmbedItems.length === 0 ? (
-                  <div className="soundcloudPanelEmpty">
-                    <p className="soundcloudPanelBodyLoading" role="status">
-                      {(() => {
-                        const src =
-                          soundcloudListTab === "plays"
-                            ? soundcloudPlays
-                            : soundcloudRecent;
-                        if (src.status === "error") {
-                          return "Could not load tracks from the API.";
-                        }
-                        return soundcloudListTab === "plays"
-                          ? "No tracks to show."
-                          : "No public tracks to show.";
-                      })()}
-                    </p>
-                    <a
-                      className="pillBtn pillBtnSoundcloud"
-                      href={soundcloudProfileHref}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <SiSoundcloud className="pillBtnIcon" aria-hidden />
-                      Open SoundCloud
-                    </a>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
-          {musicFilter === "spotify" ? (
-            <div
-              className="musicSpotifyPanel sectionSpotify"
-              id="spotify-playlists"
-              aria-label="Spotify"
-            >
-              {showSpotifyPlaylistsBlock ? (
-                <HeroSpotifyPlaylistStrip
-                  playlists={heroSpotifyPlaylists.items}
-                />
-              ) : spotifyPlaylistsLoading ? (
-                <p className="muted">Loading playlists…</p>
-              ) : spotifyPlaylistsError ? (
-                <p className="muted">Could not load playlists.</p>
-              ) : null}
-
-              <SpotifyArtistCatalog
-                status={spotifyArtistCatalog.status}
-                tracks={spotifyArtistCatalog.tracks}
-                meta={spotifyArtistCatalog.meta}
-                nested={false}
-                artist={spotifyArtistCatalog.artist}
-              />
-            </div>
-          ) : null}
-
-          {(musicFilter === "original" || musicFilter === "remix") &&
-          latestReleaseTrack ? (
-            <div
-              className="musicLatestHighlight"
-              role="region"
-              aria-label="Latest release"
-            >
-              <div className="musicLatestHighlightInner">
-                {latestReleaseTrack.coverArt ? (
-                  <div className="musicLatestCoverWrap">
-                    <img
-                      className="musicLatestCover"
-                      src={latestReleaseTrack.coverArt}
-                      alt=""
-                      loading="lazy"
-                    />
-                  </div>
-                ) : null}
-                <div className="musicLatestBody">
-                  <div className="musicLatestBadge">Latest release</div>
-                  <h3 className="musicLatestTitle">
-                    {latestReleaseTrack.title}
-                  </h3>
-                  <p className="musicLatestDate">
-                    {formatDate(latestReleaseTrack.releaseDate)}
-                  </p>
-                  {latestReleaseTrack.description ? (
-                    <p className="musicLatestMeta">
-                      {latestReleaseTrack.description}
-                    </p>
-                  ) : null}
-                  <div className="musicLatestFooter">
-                    <div
-                      className={`musicTypePill ${latestReleaseTrack.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
-                    >
-                      {latestReleaseTrack.type === "original"
-                        ? "Original"
-                        : "Remix"}
+                  <div className="musicArtTileFrame">
+                    {t.coverArt ? (
+                      <img
+                        className="musicArtTileImg"
+                        src={t.coverArt}
+                        alt=""
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="musicArtTileImg musicArtTileImgPlaceholder"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <div className="musicArtTileOverlay">
+                      <h3 className="musicArtTileTitle">{t.title}</h3>
+                      <MusicLinksRow
+                        track={t}
+                        className="musicArtTileLinks"
+                      />
                     </div>
-                    <MusicLinksRow track={latestReleaseTrack} />
+                    {isLatest ? (
+                      <span className="musicArtTileBadge">Latest</span>
+                    ) : null}
                   </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
+                </article>
+              );
+            })}
+          </div>
 
-          {musicFilter === "original" || musicFilter === "remix" ? (
-            <div className="musicGrid" aria-label="Music list">
-              {musicTracks.length === 0 ? (
-                <div className="emptyState">
-                  No music entries yet. Add tracks in the YAML files.
-                </div>
-              ) : null}
+          <div
+            className="musicSpotifyPanel sectionSpotify"
+            id="spotify-catalog"
+            aria-label="Spotify artist"
+          >
+            <SpotifyArtistCatalog
+              status={spotifyArtistCatalog.status}
+              meta={spotifyArtistCatalog.meta}
+            />
+          </div>
 
-              {musicTracks.map((t, idx) => {
-                const key = `${t.type || "track"}-${t.title}-${idx}`;
-                const isLatest =
-                  latestReleaseKey &&
-                  `${t.type}-${t.title}-${t.releaseDate}` === latestReleaseKey;
-                const expandId = `music-expand-${musicFilter}-${idx}`;
-                const headingId = `music-h-${musicFilter}-${idx}`;
-                const isExpanded = !musicCompact || !!musicExpanded[key];
-                const toggleCard = () => {
-                  if (!musicCompact) return;
-                  setMusicExpanded((prev) => ({
-                    ...prev,
-                    [key]: !prev[key],
-                  }));
-                };
-
-                return (
-                  <div
-                    key={key}
-                    className={`musicCard${isLatest ? " musicCardLatest" : ""}${
-                      musicCompact
-                        ? isExpanded
-                          ? " musicCardExpanded"
-                          : " musicCardCollapsed"
-                        : ""
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      className="musicCardSummary"
-                      id={headingId}
-                      aria-expanded={musicCompact ? isExpanded : true}
-                      aria-controls={expandId}
-                      onClick={toggleCard}
-                    >
-                      {t.coverArt ? (
-                        <img
-                          className="musicCardThumb"
-                          src={t.coverArt}
-                          alt=""
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          className="musicCardThumb musicCardThumbPlaceholder"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <div className="musicCardSummaryMain">
-                        <div className="musicTitle">{t.title}</div>
-                        <div
-                          className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
-                        >
-                          {t.type === "original" ? "Original" : "Remix"}
-                        </div>
-                      </div>
-                      <span className="musicCardChevron" aria-hidden="true">
-                        ▼
-                      </span>
-                    </button>
-
-                    <div
-                      id={expandId}
-                      className="musicCardExpand"
-                      role="region"
-                      aria-labelledby={headingId}
-                      hidden={musicCompact && !isExpanded}
-                    >
-                      <div className="musicCardTop musicCardExpandDesktopOnly">
-                        <div className="musicTitle">{t.title}</div>
-                        <div
-                          className={`musicTypePill ${t.type === "original" ? "musicTypeOriginal" : "musicTypeRemix"}`}
-                        >
-                          {t.type === "original" ? "Original" : "Remix"}
-                        </div>
-                      </div>
-                      {t.coverArt ? (
-                        <img
-                          className="musicCoverImg"
-                          src={t.coverArt}
-                          alt={`${t.title} cover art`}
-                          loading="lazy"
-                        />
-                      ) : null}
-                      {t.description ? (
-                        <div className="musicMeta">{t.description}</div>
-                      ) : null}
-                      <MusicLinksRow track={t} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
+          <SoundcloudCarousel
+            items={soundcloudEmbedItems}
+            status={
+              soundcloudListTab === "plays"
+                ? soundcloudPlays.status
+                : soundcloudRecent.status
+            }
+            listTab={soundcloudListTab}
+            onListTabChange={setSoundcloudListTab}
+            profileHref={soundcloudProfileHref}
+            prefersReducedMotion={prefersReducedMotion}
+          />
         </section>
 
         <section className="section" id="shows-upcoming">
@@ -2045,7 +1648,7 @@ export default function App() {
                     clearContactFeedback();
                     setContactMessage(e.target.value);
                   }}
-                  placeholder="Tell me about the gig, dates, vibe…"
+                  placeholder="Lets make magic happen…"
                 />
               </div>
               {contactStatus === "error" && contactErrorText ? (

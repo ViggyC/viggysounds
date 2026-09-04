@@ -15,7 +15,10 @@ const catalogResultCache = new Map();
 const catalogInflight = new Map();
 
 function catalogCacheTtlMs() {
-  const n = Number.parseInt(process.env.SPOTIFY_CATALOG_CACHE_MS || "300000", 10);
+  const n = Number.parseInt(
+    process.env.SPOTIFY_CATALOG_CACHE_MS || "300000",
+    10,
+  );
   if (!Number.isFinite(n) || n < 0) return 300_000;
   return Math.min(n, 3_600_000);
 }
@@ -108,11 +111,7 @@ export async function fetchTracksByIds(trackIds) {
   const unique = [];
   const seen = new Set();
   for (const id of trackIds) {
-    if (
-      typeof id !== "string" ||
-      !/^[a-zA-Z0-9]{16,24}$/.test(id)
-    )
-      continue;
+    if (typeof id !== "string" || !/^[a-zA-Z0-9]{16,24}$/.test(id)) continue;
     if (seen.has(id)) continue;
     seen.add(id);
     unique.push(id);
@@ -331,8 +330,13 @@ async function fetchArtistCatalogTracksUncached(
     tracks: out,
     meta: {
       albumsScanned: albums.length,
+      artistId,
       artistName:
         typeof prof.body?.name === "string" ? prof.body.name : undefined,
+      artistImageUrl: Array.isArray(prof.body?.images)
+        ? (prof.body.images.find((img) => typeof img?.url === "string")?.url ??
+          null)
+        : null,
     },
   };
 

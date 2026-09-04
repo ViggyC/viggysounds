@@ -43,14 +43,6 @@ import {
   topTracksByPlayback,
 } from "./lib/soundcloudTopByPlays.js";
 
-function spotifyUserIdFromEnv() {
-  return (
-    process.env.SPOTIFY_USER_ID?.trim() ||
-    process.env.SPOTIFY_USERNAME?.trim() ||
-    ""
-  );
-}
-
 /**
  * Artist id from open.spotify.com/artist/<id> — not the same as user profile id.
  * Accepts full URL or raw id.
@@ -201,71 +193,6 @@ function spotifyApiFailureMessage(result, verbPhrase) {
   return `${verbPhrase} (HTTP ${st}).`;
 }
 
-/**
- * Playlist IDs for GET /v1/playlists/{id} (works for public playlists + Client Credentials).
- * Accepts raw IDs or full share URLs — same API call Spotify documents:
- * https://developer.spotify.com/documentation/web-api/reference/get-playlist
- */
-function spotifyPlaylistIdsFromEnv() {
-  const blobs = [
-    typeof process.env.SPOTIFY_PLAYLIST_IDS === "string"
-      ? process.env.SPOTIFY_PLAYLIST_IDS.trim()
-      : "",
-    typeof process.env.SPOTIFY_PLAYLIST_URL === "string"
-      ? process.env.SPOTIFY_PLAYLIST_URL.trim()
-      : "",
-  ].filter((s) => s.length > 0);
-  if (!blobs.length) return [];
-
-  const segments = [];
-  for (const blob of blobs) {
-    for (const part of blob.split(/[\n,]/)) {
-      const s = part.trim().replace(/^["']|["']$/g, "");
-      if (s) segments.push(s);
-    }
-  }
-
-  /* open.spotify.com/playlist/id or .../intl-xx/playlist/id or ?si= */
-  const urlPattern = /\/playlist\/([a-zA-Z0-9]+)/i;
-  const ids = [];
-  const seen = new Set();
-
-  for (const seg of segments) {
-    let id = null;
-    const m = seg.match(urlPattern);
-    if (m) id = m[1];
-    else if (/^[a-zA-Z0-9]+$/.test(seg) && seg.length >= 8) id = seg;
-
-    if (id && !seen.has(id)) {
-      seen.add(id);
-      ids.push(id);
-    }
-  }
-  return ids;
-}
-
-/** Normalize playlist from GET /playlists/:id or an item from GET /users/:id/playlists */
-function mapSpotifyPlaylist(p) {
-  if (!p || p.id == null) return null;
-  const id = String(p.id).trim();
-  if (!id) return null;
-  const images = Array.isArray(p.images) ? p.images : [];
-  const img =
-    images.find((i) => i?.url && i.width && i.height) ||
-    images.find((i) => i?.url) ||
-    images[0];
-  return {
-    id,
-    name: typeof p.name === "string" ? p.name : "Playlist",
-    spotifyUrl:
-      typeof p.external_urls?.spotify === "string"
-        ? p.external_urls.spotify
-        : `https://open.spotify.com/playlist/${encodeURIComponent(p.id)}`,
-    imageUrl: typeof img?.url === "string" ? img.url : null,
-    tracksTotal: typeof p.tracks?.total === "number" ? p.tracks.total : null,
-  };
-}
-
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 
@@ -282,13 +209,9 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (_req, res) => {
-  const resolved = spotifyPlaylistIdsFromEnv();
   res.json({
     ok: true,
     spotify: spotifyConfigured(),
-    spotifyPlaylistsUser: Boolean(spotifyUserIdFromEnv()),
-    spotifyPlaylistIdsEnv: Boolean(resolved.length),
-    spotifyPlaylistIdsResolvedCount: resolved.length,
     spotifyArtistId: Boolean(spotifyArtistIdFromEnv()),
     soundcloud: soundcloudConfigured(),
     soundcloudUser: soundcloudUserConfigured(),
@@ -455,214 +378,6 @@ app.get("/api/spotify/ping", async (req, res) => {
     res.status(500).json({
       ok: false,
       error: err instanceof Error ? err.message : "ping failed",
-    });
-  }
-});
-
-/**
- * Spotify: GET /api/spotify/playlists?limit=12
- * Merges (1) SPOTIFY_PLAYLIST_IDS — explicit public playlist IDs, (2) public playlists
- * for SPOTIFY_USER_ID / SPOTIFY_USERNAME. Client Credentials cannot see private playlists.
- */
-app.get("/api/spotify/playlists", async (req, res) => {
-  if (!spotifyConfigured()) {
-    res.status(503).json({
-      ok: false,
-      playlists: [],
-      error: "Spotify is not configured (missing SPOTIFY_CLIENT_ID / SECRET)",
-    });
-    return;
-  }
-
-  const userId = spotifyUserIdFromEnv();
-  const explicitIds = spotifyPlaylistIdsFromEnv();
-  if (!userId && explicitIds.length === 0) {
-    res.status(503).json({
-      ok: false,
-      playlists: [],
-      error:
-        "Set SPOTIFY_USER_ID and/or SPOTIFY_PLAYLIST_URL / SPOTIFY_PLAYLIST_IDS in server/.env — restart the API after saving.",
-    });
-    return;
-  }
-
-  const limit = Math.min(
-    50,
-    Math.max(1, Number.parseInt(String(req.query.limit || "12"), 10) || 12),
-  );
-
-  try {
-    const merged = [];
-    const seen = new Set();
-    /** Spotify `total` from GET /users/.../playlists first page (public list size). */
-    let spotifyUserPlaylistTotal;
-    /** Result of GET /users/{id} — 404 means wrong SPOTIFY_USER_ID. */
-    let userProfileStatus;
-
-    const market = process.env.SPOTIFY_MARKET?.trim();
-    const marketQs =
-      market && /^[a-z]{2}$/i.test(market)
-        ? `?market=${encodeURIComponent(market.toUpperCase())}`
-        : "";
-
-    for (const pid of explicitIds) {
-      let path = `/playlists/${encodeURIComponent(pid)}${marketQs}`;
-      let { status, body } = await spotifyGet(path);
-      if (status !== 200 && marketQs) {
-        ({ status, body } = await spotifyGet(
-          `/playlists/${encodeURIComponent(pid)}`,
-        ));
-      }
-      if (status !== 200) {
-        const detail =
-          typeof body === "object" && body !== null
-            ? JSON.stringify(body).slice(0, 280)
-            : String(body).slice(0, 280);
-        console.warn(
-          "[GET /api/spotify/playlists] GET /playlists/",
-          pid,
-          "→",
-          status,
-          detail,
-        );
-        continue;
-      }
-      const m = mapSpotifyPlaylist(body);
-      if (m && !seen.has(m.id)) {
-        merged.push(m);
-        seen.add(m.id);
-      }
-    }
-
-    if (userId) {
-      const profRes = await spotifyGet(`/users/${encodeURIComponent(userId)}`);
-      userProfileStatus = profRes.status;
-      if (profRes.status !== 200) {
-        console.warn(
-          `[GET /api/spotify/playlists] GET /users/${userId} → ${profRes.status}. Use the id from open.spotify.com/user/<id> (Profile → ••• → Share → Copy link to profile).`,
-        );
-      }
-    }
-
-    if (userId && userProfileStatus === 200) {
-      let status = 200;
-      let body = null;
-      let nextUrl = `/users/${encodeURIComponent(userId)}/playlists?limit=50`;
-      let page = 0;
-
-      while (nextUrl && merged.length < limit && page < 6) {
-        const pageRes = await spotifyGet(nextUrl);
-        status = pageRes.status;
-        body = pageRes.body;
-        page += 1;
-
-        if (status !== 200) {
-          break;
-        }
-
-        if (
-          typeof body?.total === "number" &&
-          spotifyUserPlaylistTotal === undefined
-        ) {
-          spotifyUserPlaylistTotal = body.total;
-        }
-
-        const raw = Array.isArray(body?.items) ? body.items : [];
-        if (page === 1 && raw.length === 0) {
-          console.warn(
-            "[GET /api/spotify/playlists] first page empty for user",
-            userId,
-            "spotifyTotal=",
-            body?.total,
-            "— Client Credentials only returns public playlists. Private lists need SPOTIFY_PLAYLIST_IDS or OAuth.",
-          );
-        }
-
-        for (const p of raw) {
-          const m = mapSpotifyPlaylist(p);
-          if (m && !seen.has(m.id)) {
-            merged.push(m);
-            seen.add(m.id);
-          }
-          if (merged.length >= limit) break;
-        }
-
-        nextUrl =
-          merged.length >= limit
-            ? null
-            : typeof body?.next === "string" && body.next
-              ? body.next
-              : null;
-      }
-
-      if (status !== 200) {
-        const msg =
-          typeof body === "object" &&
-          body !== null &&
-          typeof body.error === "object" &&
-          body.error?.message
-            ? String(body.error.message)
-            : "spotify_user_playlists_failed";
-        const spotifyBlocksUserListing = status === 403 || status === 401;
-        console.warn(
-          "[GET /api/spotify/playlists] user playlists",
-          userId,
-          status,
-          msg,
-        );
-        if (spotifyBlocksUserListing) {
-          console.warn(
-            "[GET /api/spotify/playlists] Spotify often returns 403 for GET /users/{id}/playlists with Client Credentials (API / app policy). " +
-              "Use SPOTIFY_PLAYLIST_IDS=comma,separated,playlist_ids from each playlist share link (open.spotify.com/playlist/…).",
-          );
-        }
-        if (merged.length === 0 && !spotifyBlocksUserListing) {
-          res.status(status >= 400 && status < 600 ? status : 502).json({
-            ok: false,
-            playlists: [],
-            error: msg,
-          });
-          return;
-        }
-      }
-    }
-
-    const playlists = merged.slice(0, limit);
-    res.set("Cache-Control", "public, max-age=300");
-    res.json({
-      ok: true,
-      playlists,
-      meta: {
-        userId: userId || undefined,
-        explicitPlaylistIds: explicitIds.length,
-        spotifyUserPlaylistTotal:
-          typeof spotifyUserPlaylistTotal === "number"
-            ? spotifyUserPlaylistTotal
-            : undefined,
-        profileStatus: userProfileStatus,
-        hint:
-          playlists.length === 0
-            ? explicitIds.length > 0
-              ? `Parsed ${explicitIds.length} playlist id(s) from env but Spotify did not return them (see API console for GET /playlists/… status). Restart the server after changing .env. If status is 403, Spotify may block Client Credentials for your app — check the Spotify Developer Dashboard.`
-              : userProfileStatus === 404
-                ? `Spotify has no user "${userId}". SPOTIFY_USER_ID must match your profile URL: open.spotify.com/user/<this-part> (not display name, not artist /artist/… id).`
-                : userProfileStatus != null &&
-                    userProfileStatus !== 200 &&
-                    userProfileStatus !== undefined
-                  ? `Spotify profile request failed (${userProfileStatus}). Check SPOTIFY_USER_ID and app permissions.`
-                  : typeof spotifyUserPlaylistTotal === "number" &&
-                      spotifyUserPlaylistTotal === 0
-                    ? "This account has no playlists, or none are public. Client Credentials cannot see private playlists—make them public or set SPOTIFY_PLAYLIST_IDS."
-                    : "No playlists returned. Make playlists public on Spotify, or add SPOTIFY_PLAYLIST_URL / SPOTIFY_PLAYLIST_IDS."
-            : undefined,
-      },
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      ok: false,
-      playlists: [],
-      error: err instanceof Error ? err.message : "Spotify request failed",
     });
   }
 });
@@ -861,7 +576,10 @@ app.get("/api/spotify/artist/tracks", async (req, res) => {
       ok: true,
       mode: "catalog",
       tracks: out,
-      meta: catalogRes.meta || null,
+      meta: {
+        ...(catalogRes.meta || {}),
+        artistId,
+      },
     });
   } catch (err) {
     console.error(err);

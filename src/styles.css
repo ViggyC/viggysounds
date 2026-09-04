@@ -179,29 +179,31 @@
 /* About card */
 .aboutCard {
   display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 20px;
+  grid-template-columns: 180px 1fr;
+  gap: 22px;
   align-items: center;
   max-width: 980px;
   margin: 0 auto 6px;
-  padding: 18px;
-  border-radius: 14px;
+  padding: 20px;
+  border-radius: 16px;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.01)
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.012)
   );
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
 }
 
 .aboutPhoto {
-  width: 160px;
-  height: 160px;
+  width: 180px;
+  height: 180px;
   object-fit: cover;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 0 0 6px rgba(124, 58, 237, 0.14),
+    0 14px 34px rgba(0, 0, 0, 0.5);
   display: block;
 }
 
@@ -224,14 +226,32 @@
 
 @media (max-width: 720px) {
   .aboutCard {
-    grid-template-columns: 96px 1fr;
-    gap: 14px;
-    padding: 12px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 18px;
+    padding: 22px 16px 18px;
   }
 
   .aboutPhoto {
-    width: 96px;
-    height: 96px;
+    width: min(72vw, 240px);
+    height: min(72vw, 240px);
+    border-width: 3px;
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow:
+      0 0 0 8px rgba(124, 58, 237, 0.18),
+      0 0 40px rgba(34, 211, 238, 0.16),
+      0 18px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .aboutBody {
+    text-align: left;
+    width: 100%;
+  }
+
+  .aboutLead {
+    font-size: 1.08rem;
+    text-align: center;
   }
 }
 
@@ -552,18 +572,7 @@ a {
   }
 }
 
-/* Spotify playlists block (GET /api/spotify/playlists); lives in #spotify-playlists */
-.heroPlaylists {
-  width: 100%;
-  text-align: left;
-}
-
-.sectionSpotify .heroPlaylists {
-  max-width: min(720px, 100%);
-  margin-left: auto;
-  margin-right: auto;
-}
-
+/* Spotify artist catalog embed (#spotify-catalog) */
 .sectionSpotify .spotifyCatalog {
   max-width: min(720px, 100%);
   margin-left: auto;
@@ -572,50 +581,9 @@ a {
   text-align: left;
 }
 
-.sectionSpotify .heroPlaylists + .spotifyCatalog,
-.sectionSpotify .musicSpotifyPlaylistsWrap + .spotifyCatalog {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .spotifyCatalogTop {
   margin-bottom: 14px;
   padding: 0 2px;
-}
-
-.spotifyArtistEmbed {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  max-width: 980px;
-  margin: 0 auto;
-}
-
-.spotifyArtistImage {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.spotifyArtistEmbed .heroPlaylistEmbedFrame {
-  flex: 1 1 420px;
-  min-width: 280px;
-}
-
-@media (max-width: 720px) {
-  .spotifyArtistEmbed {
-    flex-direction: column;
-    align-items: center;
-  }
-  .spotifyArtistImage {
-    width: 96px;
-    height: 96px;
-  }
 }
 
 .spotifyCatalogTitle {
@@ -650,223 +618,6 @@ a {
   color: rgba(245, 246, 255, 0.55);
 }
 
-.spotifyCatalogList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.spotifyCatalogRow {
-  margin: 0;
-  padding: 0;
-}
-
-.spotifyCatalogRowInner {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.spotifyCatalogRowBtn {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 14px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: rgba(245, 246, 255, 0.94);
-  border: 1px solid transparent;
-  background: transparent;
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 150ms ease,
-    background 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.spotifyCatalogRowBtn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.28);
-}
-
-.spotifyCatalogRowBtn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.55);
-}
-
-.spotifyCatalogRowBtn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.spotifyCatalogRowBtnActive {
-  border-color: rgba(29, 185, 84, 0.55);
-  background: rgba(29, 185, 84, 0.12);
-  box-shadow: 0 0 0 1px rgba(29, 185, 84, 0.28);
-}
-
-.spotifyCatalogRowOpen {
-  flex-shrink: 0;
-  align-self: center;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.35);
-  color: rgba(196, 220, 255, 0.92);
-  transition:
-    border-color 150ms ease,
-    background 150ms ease;
-}
-
-.spotifyCatalogRowOpen:hover {
-  border-color: rgba(29, 185, 84, 0.45);
-  background: rgba(29, 185, 84, 0.1);
-}
-
-.spotifyCatalogEmbed {
-  width: 100%;
-}
-
-.spotifyCatalogMain {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  flex: 1 1 12rem;
-}
-
-.spotifyCatalogTrackName {
-  font-size: 0.92rem;
-  font-weight: 750;
-  line-height: 1.3;
-}
-
-.spotifyCatalogExplicit {
-  flex-shrink: 0;
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  padding: 2px 5px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: rgba(245, 246, 255, 0.75);
-}
-
-.spotifyCatalogDetails {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 650;
-  color: rgba(245, 246, 255, 0.52);
-  flex-shrink: 0;
-}
-
-.spotifyCatalogArtists {
-  max-width: 42ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.spotifyCatalogAlbum {
-  max-width: 36ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.spotifyCatalogDur {
-  font-variant-numeric: tabular-nums;
-  color: rgba(245, 246, 255, 0.68);
-}
-
-@media (max-width: 560px) {
-  .spotifyCatalogRowInner {
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: flex-start;
-  }
-
-  .spotifyCatalogRowBtn {
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 4px 10px;
-    padding: 6px 8px;
-    border-radius: 10px;
-  }
-
-  .spotifyCatalogMain {
-    flex: 1 1 auto;
-    min-width: 0;
-    gap: 6px;
-  }
-
-  .spotifyCatalogTrackName {
-    font-size: 0.82rem;
-    line-height: 1.25;
-  }
-
-  .spotifyCatalogDetails {
-    flex: 1 1 100%;
-    justify-content: flex-start;
-    gap: 4px 8px;
-    font-size: 0.7rem;
-    margin-top: 2px;
-  }
-
-  .spotifyCatalogRowOpen {
-    align-self: center;
-    padding: 4px 8px;
-    font-size: 0.65rem;
-  }
-
-  .spotifyCatalogArtists,
-  .spotifyCatalogAlbum {
-    white-space: normal;
-  }
-}
-
-.heroPlaylistsTop {
-  margin-bottom: 10px;
-  padding: 0 2px;
-}
-
-.heroPlaylistsTitle {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(245, 246, 255, 0.92);
-}
-
-.heroPlaylistsTitleNested {
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
-}
-
 .heroPlaylistsTitleIcon {
   width: 1.15rem;
   height: 1.15rem;
@@ -874,123 +625,38 @@ a {
   color: #1db954;
 }
 
-.heroPlaylistsHint {
-  margin: 0 2px 10px;
-  font-size: 0.78rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  color: rgba(245, 246, 255, 0.62);
-  text-align: left;
-}
-
-.heroPlaylistsChips {
+.spotifyArtistEmbed {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 12px;
-  padding: 0;
-  list-style: none;
-}
-
-.heroPlaylistChipLi {
-  margin: 0;
-  padding: 0;
-}
-
-.heroPlaylistChip {
-  display: inline-flex;
-  flex-direction: column;
+  gap: 16px;
   align-items: flex-start;
-  gap: 2px;
-  max-width: min(100%, 18rem);
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.35);
-  color: rgba(245, 246, 255, 0.94);
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 150ms ease,
-    background 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.heroPlaylistChip:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.55);
-}
-
-.heroPlaylistChip:hover {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.heroPlaylistChipActive {
-  border-color: rgba(29, 185, 84, 0.55);
-  background: rgba(29, 185, 84, 0.14);
-  box-shadow: 0 0 0 1px rgba(29, 185, 84, 0.35);
-}
-
-.heroPlaylistChipLabel {
-  font-size: 0.8rem;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.heroPlaylistChipMeta {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: rgba(245, 246, 255, 0.55);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .heroPlaylistChip:hover {
-    transform: none;
-  }
-}
-
-.heroPlaylistEmbedShell {
-  width: 100%;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.heroPlaylistEmbedShellFirst {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-}
-
-.heroPlaylistEmbedBar {
-  display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-bottom: 10px;
+  max-width: 980px;
+  margin: 0 auto;
 }
 
-.heroPlaylistEmbedLink {
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-decoration: none;
-  padding: 6px 11px;
-  border-radius: 999px;
-  border: 1px solid rgba(29, 185, 84, 0.45);
-  background: rgba(29, 185, 84, 0.12);
-  color: #c8f5dc;
-  transition:
-    border-color 150ms ease,
-    background 150ms ease;
+.spotifyArtistImage {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.heroPlaylistEmbedLink:hover {
-  border-color: rgba(29, 185, 84, 0.65);
-  background: rgba(29, 185, 84, 0.2);
+.spotifyArtistEmbed .heroPlaylistEmbedFrame {
+  flex: 1 1 420px;
+  min-width: 280px;
+}
+
+@media (max-width: 720px) {
+  .spotifyArtistEmbed {
+    flex-direction: column;
+    align-items: center;
+  }
+  .spotifyArtistImage {
+    width: 96px;
+    height: 96px;
+  }
 }
 
 .heroPlaylistEmbedFrame {
@@ -1243,7 +909,10 @@ a {
 
 .musicSpotifyPanel {
   width: 100%;
+  margin-top: 28px;
   margin-bottom: 8px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   text-align: left;
 }
 
@@ -1280,15 +949,6 @@ a {
   color: rgba(254, 226, 226, 0.95);
 }
 
-.sectionSpotify .spotifyCatalog + .musicSpotifyPlaylistsWrap {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.musicSpotifyPlaylistsWrap {
-  width: 100%;
-}
 
 .musicSpotifyCode {
   font-size: 0.82em;
@@ -1299,80 +959,181 @@ a {
   color: rgba(196, 220, 255, 0.95);
 }
 
-.musicGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+.musicGalleryHint {
+  margin: 0 0 14px;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: rgba(245, 246, 255, 0.62);
 }
 
-.musicCard {
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 14px 14px;
-  min-height: 160px;
+.musicGalleryHint strong {
+  color: rgba(245, 246, 255, 0.92);
+  font-weight: 850;
+}
+
+.musicArtGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  max-width: 920px;
+  margin: 0 auto 8px;
+}
+
+.musicArtGrid .emptyState {
+  grid-column: 1 / -1;
+}
+
+.musicArtTile {
+  margin: 0;
+  outline: none;
+}
+
+.musicArtTileFrame {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  isolation: isolate;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.musicArtTile:hover .musicArtTileFrame,
+.musicArtTile:focus-within .musicArtTileFrame {
+  transform: translateY(-3px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
+.musicArtTileImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
+}
+
+.musicArtTile:hover .musicArtTileImg,
+.musicArtTile:focus-within .musicArtTileImg {
+  transform: scale(1.06);
+}
+
+.musicArtTileImgPlaceholder {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.28),
+    rgba(34, 211, 238, 0.16)
+  );
+}
+
+.musicArtTileOverlay {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   gap: 10px;
+  padding: 12px 10px 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.55) 45%,
+    rgba(0, 0, 0, 0.82) 100%
+  );
+  opacity: 0;
+  transform: translateY(6px);
   transition:
-    border-color 150ms ease,
-    transform 150ms ease,
-    background 150ms ease;
+    opacity 200ms ease,
+    transform 200ms ease;
+  pointer-events: none;
 }
 
-.musicCard:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.055);
+.musicArtTile:hover .musicArtTileOverlay,
+.musicArtTile:focus-within .musicArtTileOverlay {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
-.musicCardTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.musicCoverImg {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  height: auto;
-  object-fit: contain;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.musicTitle {
-  font-weight: 950;
+.musicArtTileTitle {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 850;
   letter-spacing: -0.02em;
-  font-size: 1.05rem;
   line-height: 1.2;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
 }
 
-.musicTypePill {
+.musicArtTileLinks {
+  margin-top: 0;
+  gap: 5px;
+}
+
+.musicArtTileLinks .musicChip {
+  min-height: 30px;
+  min-width: 30px;
+  padding: 5px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.musicArtTileBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 4px 8px;
   border-radius: 999px;
-  padding: 6px 10px;
+  font-size: 0.62rem;
   font-weight: 900;
-  font-size: 0.86rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f5f3ff;
+  background: rgba(124, 58, 237, 0.85);
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
-.musicTypeOriginal {
-  background: rgba(124, 58, 237, 0.22);
+.musicArtTileLatest .musicArtTileFrame {
   border-color: rgba(124, 58, 237, 0.45);
 }
 
-.musicTypeRemix {
-  background: rgba(34, 211, 238, 0.16);
-  border-color: rgba(34, 211, 238, 0.35);
+@media (hover: none) {
+  .musicArtTileOverlay {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    background: linear-gradient(
+      180deg,
+      transparent 35%,
+      rgba(0, 0, 0, 0.72) 100%
+    );
+  }
+
+  .musicArtTile:hover .musicArtTileFrame,
+  .musicArtTile:focus-within .musicArtTileFrame {
+    transform: none;
+  }
+
+  .musicArtTile:hover .musicArtTileImg,
+  .musicArtTile:focus-within .musicArtTileImg {
+    transform: none;
+  }
 }
 
-.musicMeta {
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.35;
+@media (prefers-reduced-motion: reduce) {
+  .musicArtTileFrame,
+  .musicArtTileImg,
+  .musicArtTileOverlay {
+    transition: none;
+  }
 }
 
 .musicLinksRow {
@@ -1467,144 +1228,106 @@ a {
   border-color: rgba(216, 180, 254, 0.62);
 }
 
-.soundcloudPanel {
-  margin-bottom: 18px;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.035);
-  overflow: hidden;
-}
-
-.soundcloudPanelHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.soundcloudCarousel {
   width: 100%;
-  margin: 0;
-  padding: 14px 16px;
-  border: none;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+  max-width: min(720px, 100%);
+  margin: 28px auto 8px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   text-align: left;
-  cursor: pointer;
-  min-height: 44px;
-  transition: background 0.15s ease;
-  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.12);
-  touch-action: manipulation;
 }
 
-.soundcloudPanelHeader:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.soundcloudPanelHeader:focus-visible {
-  outline: 2px solid rgba(124, 58, 237, 0.65);
-  outline-offset: 2px;
-}
-
-.soundcloudPanelHeaderText {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-}
-
-.soundcloudPanelTitle {
-  font-weight: 950;
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
-}
-
-.soundcloudPanelMeta {
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-
-.soundcloudPanelCount {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.soundcloudPanelChevron {
-  flex-shrink: 0;
-  font-size: 9px;
-  opacity: 0.55;
-  transition: transform 0.2s ease;
-}
-
-.soundcloudPanelOpen .soundcloudPanelChevron {
-  transform: rotate(180deg);
-}
-
-.soundcloudSubTabs {
+.soundcloudCarouselTop {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 14px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 14px;
+  padding: 0 2px;
 }
 
-.soundcloudSubTab {
+.soundcloudCarouselHeading {
+  min-width: 0;
+}
+
+.soundcloudCarouselTitle {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 246, 255, 0.92);
+}
+
+.soundcloudCarouselTitleIcon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  color: #ff5500;
+}
+
+.soundcloudCarouselHint {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: rgba(245, 246, 255, 0.55);
+}
+
+.soundcloudCarouselModes {
+  display: inline-flex;
+  gap: 6px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.soundcloudCarouselMode {
   appearance: none;
   font: inherit;
   cursor: pointer;
+  border: none;
   border-radius: 999px;
-  padding: 8px 14px;
-  font-weight: 850;
-  font-size: 0.88rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(245, 246, 255, 0.88);
+  padding: 7px 12px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  background: transparent;
+  color: rgba(245, 246, 255, 0.7);
   transition:
     background 0.15s ease,
-    border-color 0.15s ease;
+    color 0.15s ease;
 }
 
-.soundcloudSubTab:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.22);
+.soundcloudCarouselMode:hover {
+  color: rgba(245, 246, 255, 0.92);
 }
 
-.soundcloudSubTab:focus-visible {
-  outline: 2px solid rgba(124, 58, 237, 0.65);
+.soundcloudCarouselMode:focus-visible {
+  outline: 2px solid rgba(255, 85, 0, 0.55);
   outline-offset: 2px;
 }
 
-.soundcloudSubTabActive {
-  border-color: rgba(34, 211, 238, 0.45);
-  background: rgba(34, 211, 238, 0.12);
-  color: #f0fdff;
+.soundcloudCarouselModeActive {
+  background: rgba(255, 85, 0, 0.22);
+  color: #fff4ed;
 }
 
-.soundcloudPanelBody {
-  padding: 0 14px 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.soundcloudPanelBody[hidden] {
-  display: none !important;
-}
-
-.soundcloudPanelBodyLoading {
+.soundcloudCarouselStatus {
   margin: 0;
-  padding: 12px 4px 4px;
   color: var(--muted);
   font-size: 0.95rem;
 }
 
-.soundcloudPanelEmpty {
+.soundcloudCarouselEmpty {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
-  padding-bottom: 4px;
 }
 
 .pillBtnSoundcloud {
@@ -1620,29 +1343,48 @@ a {
   border-color: rgba(255, 85, 0, 0.65);
 }
 
-.soundcloudWidgetList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.soundcloudCarouselViewport {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.soundcloudCarouselTrack {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 2px 10px;
+  outline: none;
 }
 
-.soundcloudWidgetItem {
+.soundcloudCarouselTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.soundcloudCarouselSlide {
+  flex: 0 0 min(100%, 560px);
+  width: min(100%, 560px);
+  scroll-snap-align: center;
   margin: 0;
 }
 
-.soundcloudWidgetTrackMeta {
+.soundcloudCarouselSlideMeta {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px 12px;
+  gap: 6px 12px;
   margin-bottom: 8px;
+  min-height: 1.4em;
 }
 
-.soundcloudWidgetTrackTitle {
+.soundcloudCarouselSlideTitle {
   font-weight: 850;
   font-size: 0.95rem;
   letter-spacing: -0.02em;
@@ -1651,7 +1393,7 @@ a {
   min-width: 0;
 }
 
-.soundcloudWidgetPlays {
+.soundcloudCarouselSlidePlays {
   font-size: 0.86rem;
   font-weight: 800;
   color: rgba(255, 255, 255, 0.55);
@@ -1660,281 +1402,106 @@ a {
 
 .soundcloudEmbed {
   display: block;
+  width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.2);
 }
 
-.musicLatestHighlight {
-  margin-bottom: 16px;
-  border-radius: 20px;
+.soundcloudCarouselNav {
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(
-    135deg,
-    rgba(124, 58, 237, 0.14),
-    rgba(34, 211, 238, 0.08)
-  );
-  padding: 16px 18px;
-}
-
-.musicLatestHighlightInner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.musicLatestCoverWrap {
-  flex: 0 0 auto;
-  width: min(140px, 36vw);
-}
-
-.musicLatestCover {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.musicLatestBody {
-  flex: 1 1 200px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.musicLatestBadge {
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.musicLatestTitle {
-  margin: 0;
-  font-weight: 950;
-  letter-spacing: -0.02em;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(245, 246, 255, 0.92);
   font-size: 1.35rem;
-  line-height: 1.2;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.musicLatestDate {
-  margin: 0;
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.82);
+.soundcloudCarouselNav:hover:not(:disabled) {
+  background: rgba(255, 85, 0, 0.2);
+  border-color: rgba(255, 85, 0, 0.45);
 }
 
-.musicLatestMeta {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.35;
+.soundcloudCarouselNav:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
-.musicLatestFooter {
+.soundcloudCarouselNav:focus-visible {
+  outline: 2px solid rgba(255, 85, 0, 0.55);
+  outline-offset: 2px;
+}
+
+.soundcloudCarouselDots {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 12px;
-  margin-top: 8px;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.musicLatestFooter .musicLinksRow {
-  margin-top: 0;
+.soundcloudCarouselDot {
+  appearance: none;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
-.musicCardLatest {
-  border-color: rgba(124, 58, 237, 0.45);
-  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.12);
+.soundcloudCarouselDot:hover {
+  background: rgba(255, 255, 255, 0.45);
 }
 
-/* Desktop: full card; summary row hidden */
-.musicCardSummary {
-  display: none;
+.soundcloudCarouselDotActive {
+  background: #ff5500;
+  transform: scale(1.2);
 }
 
-.musicCardExpand {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-
-/* Author `display: flex` wins over the default [hidden] UA rule — restore hide */
-.musicCardExpand[hidden] {
-  display: none !important;
-}
-
-.musicCardExpandDesktopOnly {
-  display: flex;
+.soundcloudCarouselDot:focus-visible {
+  outline: 2px solid rgba(255, 85, 0, 0.55);
+  outline-offset: 2px;
 }
 
 @media (max-width: 560px) {
-  .musicCard {
-    min-height: 0;
-    padding: 10px 12px;
+  .soundcloudCarouselViewport {
+    grid-template-columns: 1fr;
   }
 
-  .musicCardCollapsed {
-    gap: 0;
-  }
-
-  .musicCardExpanded {
-    gap: 10px;
-    padding: 12px 12px;
-  }
-
-  .musicCardSummary {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin: 0;
-    padding: 6px 0;
-    border: none;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 12px;
-    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.12);
-    touch-action: manipulation;
-  }
-
-  .musicCardSummary:focus-visible {
-    outline: 2px solid rgba(124, 58, 237, 0.65);
-    outline-offset: 2px;
-  }
-
-  .musicCardThumb {
-    width: 56px;
-    height: 56px;
-    flex-shrink: 0;
-    object-fit: cover;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.035);
-  }
-
-  .musicCardThumbPlaceholder {
-    background: linear-gradient(
-      135deg,
-      rgba(124, 58, 237, 0.2),
-      rgba(34, 211, 238, 0.12)
-    );
-  }
-
-  .musicCardSummaryMain {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .musicCardSummary .musicTitle {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    font-size: 0.98rem;
-  }
-
-  .musicCardSummary .musicTypePill {
-    align-self: flex-start;
-  }
-
-  .musicCardChevron {
-    flex-shrink: 0;
-    display: inline-block;
-    font-size: 9px;
-    line-height: 1;
-    margin-inline-start: auto;
-    opacity: 0.55;
-    transition: transform 0.2s ease;
-  }
-
-  .musicCardCollapsed .musicCardChevron {
-    transform: rotate(-90deg);
-  }
-
-  .musicCardExpandDesktopOnly {
+  .soundcloudCarouselNav {
     display: none;
   }
 
-  .musicCardExpand .musicLinksRow {
-    margin-top: 0;
+  .soundcloudCarouselSlide {
+    flex-basis: 88%;
+    width: 88%;
   }
 }
 
-@media (min-width: 561px) {
-  .musicCard {
-    min-height: 160px;
+@media (prefers-reduced-motion: reduce) {
+  .soundcloudCarouselTrack {
+    scroll-behavior: auto;
   }
 
-  .musicCardExpand {
-    flex: 1;
-    min-height: 0;
+  .soundcloudCarouselDotActive {
+    transform: none;
   }
 }
 
-.emptyState {
-  grid-column: 1/-1;
-  border-radius: 18px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  padding: 16px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.linkCard {
-  text-decoration: none;
-  background: linear-gradient(180deg, var(--card), rgba(255, 255, 255, 0.035));
-  border: 1px solid var(--stroke);
-  border-radius: 18px;
-  padding: 14px 14px;
-  min-height: 92px;
-  transition:
-    transform 150ms ease,
-    border-color 150ms ease,
-    background 150ms ease;
-}
-
-.linkCard:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.22);
-  background: linear-gradient(180deg, var(--card2), rgba(255, 255, 255, 0.04));
-}
-
-.linkCardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.linkCardTitle {
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  font-size: 1.05rem;
-}
-
-.linkCardArrow {
-  color: rgba(245, 246, 255, 0.9);
-}
-
-.linkCardNote {
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.35;
-}
 
 .showList {
   display: flex;
@@ -2607,8 +2174,9 @@ a {
   .linkGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .musicGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .musicArtGrid {
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 8px;
   }
   .mediaGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2649,8 +2217,9 @@ a {
   .linkGrid {
     grid-template-columns: 1fr;
   }
-  .musicGrid {
-    grid-template-columns: 1fr;
+  .musicArtGrid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 8px;
   }
   .youtubeGrid {
     grid-template-columns: 1fr;
