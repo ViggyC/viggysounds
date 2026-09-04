@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FaPlay } from "react-icons/fa";
+import { FaPlay, FaLink } from "react-icons/fa";
 import {
   SiBeatport,
   SiInstagram,
   SiSoundcloud,
   SiSpotify,
+  SiTiktok,
+  SiYoutube,
 } from "react-icons/si";
 import { EPK } from "./data/epk.js";
 import showPhotos from "./generated/showPhotos.json";
@@ -438,7 +440,13 @@ function HeroSpotifyPlaylistStrip({ playlists, nested = false }) {
 }
 
 /** GET /api/spotify/artist/tracks (catalog); uses .spotifyCatalog styles */
-function SpotifyArtistCatalog({ status, tracks, meta, nested = false }) {
+function SpotifyArtistCatalog({
+  status,
+  tracks,
+  meta,
+  nested = false,
+  artist = null,
+}) {
   const [openTrackId, setOpenTrackId] = useState(null);
   const HeadingTag = nested ? "h3" : "h2";
 
@@ -467,8 +475,64 @@ function SpotifyArtistCatalog({ status, tracks, meta, nested = false }) {
     );
   }
 
-  if (status !== "ok" || tracks.length === 0) {
-    return null;
+  // Allow rendering when Spotify returned `mode=top` even if tracks are empty.
+  // For manual/other modes, render the catalog unless there's an error so
+  // the artist catalog (or helpful empty-state) remains visible.
+  if (!(meta && meta.mode === "top")) {
+    if (status === "error") {
+      return null;
+    }
+  }
+
+  // If server returned top-mode with artist info, render embedded artist player
+  if (meta && meta.mode === "top") {
+    const finalArtist =
+      artist || (typeof meta === "object" && meta.artist)
+        ? meta.artist
+        : artist || null;
+    const artistIdToUse = finalArtist?.id || meta?.artistId || null;
+
+    return (
+      <div className="spotifyCatalog" aria-label="Spotify top tracks">
+        <div className="spotifyCatalogTop">
+          <HeadingTag
+            className={`spotifyCatalogTitle${nested ? " spotifyCatalogTitleNested" : ""}`}
+          >
+            <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
+            Top Tracks
+          </HeadingTag>
+          {finalArtist && finalArtist.name ? (
+            <p className="spotifyCatalogArtist">{finalArtist.name}</p>
+          ) : null}
+          {meta?.note ? (
+            <p className="spotifyCatalogHint">{meta.note}</p>
+          ) : null}
+        </div>
+        <div className="spotifyArtistEmbed">
+          {finalArtist && finalArtist.imageUrl ? (
+            <img
+              className="spotifyArtistImage"
+              src={finalArtist.imageUrl}
+              alt={finalArtist.name || "Artist"}
+              loading="lazy"
+            />
+          ) : null}
+          {artistIdToUse ? (
+            <div className="heroPlaylistEmbedFrame">
+              <iframe
+                title={`Spotify — ${finalArtist?.name || "artist"}`}
+                src={`https://open.spotify.com/embed/artist/${encodeURIComponent(artistIdToUse)}?utm_source=generator&theme=0`}
+                loading="lazy"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+          ) : (
+            <p className="spotifyCatalogHint">Artist embed unavailable.</p>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const artistLine =
@@ -481,6 +545,33 @@ function SpotifyArtistCatalog({ status, tracks, meta, nested = false }) {
       : typeof meta?.albumsScanned === "number" && meta.albumsScanned > 0
         ? `${meta.albumsScanned} release${meta.albumsScanned === 1 ? "" : "s"} in catalog · tap a row to preview`
         : "Tap a row to preview in the player";
+
+  // If there are no tracks, show an explicit empty state so the section
+  // remains visible (useful when using manual mode or when playlists are shown).
+  if (!Array.isArray(tracks) || tracks.length === 0) {
+    return (
+      <div className="spotifyCatalog" aria-label="Spotify artist catalog">
+        <div className="spotifyCatalogTop">
+          <HeadingTag
+            className={`spotifyCatalogTitle${nested ? " spotifyCatalogTitleNested" : ""}`}
+          >
+            <SiSpotify className="heroPlaylistsTitleIcon" aria-hidden />
+            Tracks on Spotify
+          </HeadingTag>
+          {artistLine ? (
+            <p className="spotifyCatalogArtist">{artistLine}</p>
+          ) : null}
+          <p className="spotifyCatalogHint">{hint}</p>
+        </div>
+        <div className="spotifyCatalogEmpty">
+          <p className="muted">
+            No artist tracks available. Add Spotify links to your music YAML or
+            configure SPOTIFY_TOP_TRACK_IDS in the server environment.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="spotifyCatalog" aria-label="Spotify artist catalog">
@@ -584,6 +675,81 @@ function SpotifyArtistCatalog({ status, tracks, meta, nested = false }) {
   );
 }
 
+function SocialsFixed({ items }) {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  const icons = {
+    instagram: SiInstagram,
+    soundcloud: SiSoundcloud,
+    spotify: SiSpotify,
+    beatport: SiBeatport,
+    tiktok: SiTiktok,
+    youtube: SiYoutube,
+  };
+
+  return (
+    <div className="fixedSocials" aria-hidden={false}>
+      {items.map((s) => {
+        const key = String(s.label || "").toLowerCase();
+        const Icon = icons[key] || FaLink;
+        const href = typeof s.href === "string" ? s.href.trim() : "#";
+        return (
+          <a
+            key={s.label}
+            className="fixedSocial"
+            href={href}
+            target={s.external ? "_blank" : undefined}
+            rel={s.external ? "noreferrer" : undefined}
+            aria-label={s.label}
+            style={
+              s.brandColor
+                ? {
+                    background: hexToRgba(s.brandColor, 0.12),
+                    color: s.brandColor,
+                  }
+                : undefined
+            }
+          >
+            <Icon className="fixedSocialIcon" aria-hidden />
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function FixedQuickActions({ items }) {
+  const [activeHash, setActiveHash] = useState(
+    () => window.location.hash || "",
+  );
+
+  useEffect(() => {
+    const onHash = () => setActiveHash(window.location.hash || "");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  return (
+    <nav className="fixedQuickActions" aria-label="Quick actions">
+      {items.map((a) => {
+        const href = a.href || "#";
+        const isActive =
+          href === activeHash || (href === "#listen" && activeHash === "");
+        return (
+          <a
+            key={a.label}
+            href={href}
+            className={`fixedQuickActionsBtn${isActive ? " fixedQuickActionsBtnActive" : ""}`}
+          >
+            {a.label}
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function App() {
   const [activeVideoId, setActiveVideoId] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
@@ -604,6 +770,23 @@ export default function App() {
   const [contactMessage, setContactMessage] = useState("");
   const [contactStatus, setContactStatus] = useState("idle"); // idle | sending | success | error
   const [contactErrorText, setContactErrorText] = useState("");
+  const [backendOnline, setBackendOnline] = useState(true);
+  const [manualTracks, setManualTracks] = useState({
+    status: "idle",
+    items: [],
+  });
+
+  async function pingBackend() {
+    try {
+      const url = apiRelativeUrl("/api/spotify/playlists") + "?limit=1";
+      const r = await fetch(url, { cache: "no-store" });
+      setBackendOnline(!!r && r.ok);
+      return !!r && r.ok;
+    } catch (e) {
+      setBackendOnline(false);
+      return false;
+    }
+  }
 
   function clearContactFeedback() {
     if (contactStatus === "success" || contactStatus === "error") {
@@ -642,6 +825,7 @@ export default function App() {
       setContactErrorText(
         err instanceof Error ? err.message : "Something went wrong.",
       );
+      setBackendOnline(false);
     }
   }
 
@@ -776,6 +960,7 @@ export default function App() {
       fetch(url, { cache: "no-store" })
         .then((r) => {
           if (!r.ok) throw new Error(String(r.status));
+          setBackendOnline(true);
           return r.json();
         })
         .then((data) => {
@@ -787,7 +972,10 @@ export default function App() {
           });
         })
         .catch(() => {
-          if (!cancelled) set({ status: "error", tracks: [] });
+          if (!cancelled) {
+            set({ status: "error", tracks: [] });
+            setBackendOnline(false);
+          }
         });
     };
     load(playsUrl, setSoundcloudPlays);
@@ -808,6 +996,7 @@ export default function App() {
     fetch(url, { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
+        setBackendOnline(true);
         return r.json();
       })
       .then((data) => {
@@ -829,6 +1018,7 @@ export default function App() {
       .catch(() => {
         if (!cancelled) {
           setHeroSpotifyPlaylists({ status: "error", items: [] });
+          setBackendOnline(false);
         }
       });
     return () => {
@@ -840,19 +1030,36 @@ export default function App() {
     status: "loading",
     tracks: [],
     meta: null,
+    artist: null,
   });
 
   useEffect(() => {
     let cancelled = false;
-    const url = `${apiRelativeUrl("/api/spotify/artist/tracks")}?limit=50`;
+    const url = `${apiRelativeUrl("/api/spotify/artist/tracks")}?mode=top&limit=10`;
     fetch(url, { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
+        setBackendOnline(true);
         return r.json();
       })
       .then((data) => {
         if (cancelled) return;
+        // If Spotify returns ok:false (e.g., 403 blocked top-tracks) but includes artist/meta,
+        // treat it as usable so the frontend can still render the artist embed.
         if (!data?.ok) {
+          const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+          if (
+            (data?.artist && (Array.isArray(tracks) || tracks.length === 0)) ||
+            data?.meta
+          ) {
+            setSpotifyArtistCatalog({
+              status: tracks.length > 0 ? "ok" : "empty",
+              tracks,
+              meta: data?.meta ?? null,
+              artist: data?.artist ?? null,
+            });
+            return;
+          }
           setSpotifyArtistCatalog({
             status: "error",
             tracks: [],
@@ -865,6 +1072,7 @@ export default function App() {
           status: tracks.length > 0 ? "ok" : "empty",
           tracks,
           meta: data?.meta ?? null,
+          artist: data?.artist ?? null,
         });
       })
       .catch(() => {
@@ -874,6 +1082,7 @@ export default function App() {
             tracks: [],
             meta: null,
           });
+          setBackendOnline(false);
         }
       });
     return () => {
@@ -925,6 +1134,24 @@ export default function App() {
         ? remixesTracks
         : [];
 
+  // Derive a list of spotify track ids from all music YAML for fallback use
+  const manualSpotifyTrackIds = useMemo(() => {
+    const all = [...originalsTracks, ...remixesTracks];
+    const ids = [];
+    for (const t of all) {
+      const s = typeof t?.spotify === "string" ? t.spotify.trim() : "";
+      if (!s) continue;
+      const m = s.match(/\/track\/([a-zA-Z0-9]+)/i);
+      if (m && m[1]) {
+        ids.push(m[1]);
+      } else if (/^[a-zA-Z0-9]+$/.test(s) && s.length >= 16 && s.length <= 24) {
+        ids.push(s);
+      }
+      if (ids.length >= 10) break;
+    }
+    return ids;
+  }, [originalsTracks, remixesTracks]);
+
   const latestReleaseTrack = useMemo(() => {
     const dated = musicTracks
       .map((t) => ({ t, d: parseTrackReleaseDate(t.releaseDate) }))
@@ -956,6 +1183,26 @@ export default function App() {
 
   return (
     <div className="page">
+      {!backendOnline ? (
+        <div
+          className="backendOffline"
+          style={{
+            background: "#ffefef",
+            color: "#611",
+            padding: "6px 12px",
+            textAlign: "center",
+          }}
+        >
+          Backend offline — some features unavailable.
+          <button
+            type="button"
+            style={{ marginLeft: 8 }}
+            onClick={() => pingBackend()}
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
       <header
         className="hero"
         style={{ backgroundImage: `url(${EPK.hero.backgroundImage})` }}
@@ -986,52 +1233,63 @@ export default function App() {
             </p>
           </div>
 
-          <div className="quickLinks" aria-label="Quick actions">
-            {EPK.quickActions.map((a) => (
-              <a key={a.label} className="linkBtn" href={a.href}>
-                {a.label}
-              </a>
-            ))}
-          </div>
+          {/* Quick actions moved to fixed header */}
 
-          <div className="socialBlock">
-            <p className="socialCta">{EPK.socialCta}</p>
-            <div className="socialRow" aria-label="Social links">
-              {EPK.socials.map((s) => (
-                <a
-                  key={s.label}
-                  className="socialChip"
-                  href={s.href}
-                  target={s.external ? "_blank" : undefined}
-                  rel="noreferrer"
-                  style={
-                    s.brandColor
-                      ? {
-                          borderColor: hexToRgba(s.brandColor, 0.38),
-                          background: hexToRgba(s.brandColor, 0.12),
-                        }
-                      : undefined
-                  }
-                >
-                  {s.brandColor ? (
-                    <span
-                      className="socialDot"
-                      style={{
-                        backgroundColor: s.brandColor,
-                        boxShadow: `0 0 0 6px ${hexToRgba(s.brandColor, 0.13)}`,
-                      }}
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  {s.label}
-                </a>
-              ))}
-            </div>
-          </div>
+          {/* Socials moved to fixed right-side column */}
         </div>
       </header>
 
+      <SocialsFixed items={EPK.socials} />
+      <FixedQuickActions items={EPK.quickActions} />
+
       <main className="container main">
+        <section className="section" id="about">
+          <div className="sectionHeader sectionHeaderCentered">
+            <h2>About</h2>
+          </div>
+          <div className="aboutCard">
+            <img
+              className="aboutPhoto"
+              src="/media/photos/Headshot.png"
+              alt={`${EPK.artistName} headshot`}
+              loading="eager"
+            />
+            <div className="aboutBody">
+              <p className="aboutLead">
+                VIGGY is a Denver-based producer and DJ making bass music with a
+                cinematic edge.
+              </p>
+
+              <p>
+                His music pulls from the emotion and atmosphere of film scores
+                and combines it with the energy of dubstep, experimental bass,
+                and trap. The result is a sound that can feel beautiful and
+                nostalgic one second, then completely flip the next.
+              </p>
+
+              <p>
+                That approach comes through in his bass reimagining of{" "}
+                <strong>Hans Zimmer’s “Time,”</strong> where one of film music’s
+                most recognizable pieces is rebuilt through the VIGGY
+                sound—keeping the emotion of the original while taking it
+                somewhere much heavier.
+              </p>
+
+              <p>
+                At the center of the project is <strong>cinematic bass</strong>:
+                music that tells a story, builds a world, and still hits hard on
+                a festival system.
+              </p>
+
+              <p>
+                For VIGGY, it’s never just about making the biggest drop.{" "}
+                <strong>
+                  It’s about making you feel something before it hits.
+                </strong>
+              </p>
+            </div>
+          </div>
+        </section>
         <section className="section" id="listen">
           <div className="sectionHeader sectionHeaderCentered">
             <h2>Music</h2>
@@ -1285,47 +1543,23 @@ export default function App() {
               id="spotify-playlists"
               aria-label="Spotify"
             >
+              {showSpotifyPlaylistsBlock ? (
+                <HeroSpotifyPlaylistStrip
+                  playlists={heroSpotifyPlaylists.items}
+                />
+              ) : spotifyPlaylistsLoading ? (
+                <p className="muted">Loading playlists…</p>
+              ) : spotifyPlaylistsError ? (
+                <p className="muted">Could not load playlists.</p>
+              ) : null}
+
               <SpotifyArtistCatalog
-                nested
                 status={spotifyArtistCatalog.status}
                 tracks={spotifyArtistCatalog.tracks}
                 meta={spotifyArtistCatalog.meta}
+                nested={false}
+                artist={spotifyArtistCatalog.artist}
               />
-              {spotifyPlaylistsLoading ? (
-                <p className="musicSpotifyStatus" role="status">
-                  Loading Spotify…
-                </p>
-              ) : null}
-              {spotifyPlaylistsError ? (
-                <p className="musicSpotifyError" role="alert">
-                  Could not load playlists. Run the API server and check{" "}
-                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_URL</code>{" "}
-                  /{" "}
-                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_IDS</code>{" "}
-                  or <code className="musicSpotifyCode">SPOTIFY_USER_ID</code>{" "}
-                  in <code className="musicSpotifyCode">server/.env</code>.
-                </p>
-              ) : null}
-              {showSpotifyPlaylistsBlock ? (
-                <div className="musicSpotifyPlaylistsWrap">
-                  <HeroSpotifyPlaylistStrip
-                    nested
-                    playlists={heroSpotifyPlaylists.items}
-                  />
-                </div>
-              ) : null}
-              {spotifyPlaylistsEmpty ? (
-                <p className="musicSpotifyEmpty">
-                  No playlists returned. Add{" "}
-                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_URL</code>{" "}
-                  /{" "}
-                  <code className="musicSpotifyCode">SPOTIFY_PLAYLIST_IDS</code>{" "}
-                  or public playlists for{" "}
-                  <code className="musicSpotifyCode">SPOTIFY_USER_ID</code> in{" "}
-                  <code className="musicSpotifyCode">server/.env</code>, then
-                  restart the API.
-                </p>
-              ) : null}
             </div>
           ) : null}
 
@@ -1481,7 +1715,7 @@ export default function App() {
 
         <section className="section" id="shows-upcoming">
           <div className="sectionHeader">
-            <h2>Shows</h2>
+            <h2>Upcoming Shows</h2>
           </div>
           <div className="showList">
             {upcoming.map((s) => {

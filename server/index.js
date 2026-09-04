@@ -677,155 +677,196 @@ app.get("/api/spotify/playlists", async (req, res) => {
  * Catalog: limit=max tracks (default 200, max 500).
  */
 app.get("/api/spotify/artist/tracks", async (req, res) => {
-  if (!spotifyConfigured()) {
-    res.status(503).json({
-      ok: false,
-      tracks: [],
-      error: "Spotify is not configured (missing SPOTIFY_CLIENT_ID / SECRET)",
-    });
-    return;
-  }
-
-  const fromQuery = parseSpotifyArtistIdParam(req.query.artistId);
-  const artistId = fromQuery || spotifyArtistIdFromEnv();
-  if (!artistId) {
-    res.status(503).json({
-      ok: false,
-      tracks: [],
-      error:
-        "Set SPOTIFY_ARTIST_ID in server/.env (Spotify artist id from open.spotify.com/artist/…) or pass ?artistId=",
-    });
-    return;
-  }
-
-  const modeRaw = String(req.query.mode || "catalog").toLowerCase();
-  const mode = modeRaw === "top" ? "top" : "catalog";
-
-  const marketFromQuery =
-    typeof req.query.market === "string" ? req.query.market.trim() : "";
-  const market = normalizeSpotifyMarketIso(
-    marketFromQuery,
-    process.env.SPOTIFY_MARKET,
+  const queryMode = String(req.query.mode || "catalog").toLowerCase();
+  const mode = queryMode === "top" ? "top" : "catalog";
+  const limit = Math.min(
+    50,
+    Math.max(
+      1,
+      Number.parseInt(
+        String(req.query.limit || (mode === "top" ? "5" : "200")),
+        10,
+      ) || (mode === "top" ? 5 : 200),
+    ),
   );
+
+  const artistId =
+    parseSpotifyArtistIdParam(req.query.artistId) || spotifyArtistIdFromEnv();
+  if (!artistId) {
+    res.status(400).json({
+      ok: false,
+      error: "Missing SPOTIFY_ARTIST_ID or ?artistId= parameter",
+    });
+    return;
+  }
+
+  // If Spotify isn't configured, allow a manual fallback via SPOTIFY_TOP_TRACK_IDS
+  const manualIds = spotifyTopTrackIdsFromEnv();
 
   try {
     if (mode === "top") {
-      let result = await fetchArtistTopTracks(artistId, market);
-      let usedManualTrackFallback = false;
-      const manualIds = spotifyTopTrackIdsFromEnv();
-      let tracksByIdsAttempt = null;
-
-      if (!result.ok && result.status === 403 && manualIds.length > 0) {
-        console.warn(
-          "[spotify] GET …/top-tracks returned 403 — trying SPOTIFY_TOP_TRACK_IDS via GET /tracks",
-        );
-        tracksByIdsAttempt = await fetchTracksByIds(manualIds);
-        if (tracksByIdsAttempt.ok && tracksByIdsAttempt.tracks.length > 0) {
-          result = tracksByIdsAttempt;
-          usedManualTrackFallback = true;
-        }
-      }
-
-      if (!result.ok) {
-        const clientMsg = spotifyTopModeClientError(
-          result,
-          tracksByIdsAttempt,
-          manualIds.length,
-        );
-        res
-          .status(
-            result.status >= 400 && result.status < 600 ? result.status : 502,
-          )
-          .json({
+      if (!spotifyConfigured()) {
+        // Try manual fallback
+        if (manualIds.length === 0) {
+          res.status(503).json({
             ok: false,
+            mode: "top",
             tracks: [],
-            error: clientMsg,
-            spotify: result.body,
+            meta: {
+              note: "Spotify not configured and no SPOTIFY_TOP_TRACK_IDS fallback provided.",
+            },
           });
+          return;
+        }
+        // Fetch metadata for manual ids if possible
+        const tracksByIdsResult = await fetchTracksByIds(
+          manualIds.slice(0, limit),
+        );
+        if (tracksByIdsResult.ok) {
+          res.set("Cache-Control", "public, max-age=300");
+          res.json({
+            ok: true,
+            mode: "manual",
+            tracks: tracksByIdsResult.tracks,
+            meta: { source: "env" },
+          });
+          return;
+        }
+        res.status(502).json({
+          ok: false,
+          error: "Spotify not configured and manual fallback failed",
+        });
         return;
       }
 
-      const limitTop = Math.min(
-        10,
-        Math.max(1, Number.parseInt(String(req.query.limit ?? "5"), 10) || 5),
+      const market = normalizeSpotifyMarketIso(
+        req.query.market,
+        process.env.SPOTIFY_MARKET,
       );
-      const tracks = result.tracks.slice(0, limitTop);
-      const primary =
-        tracks.length > 0 &&
-        Array.isArray(tracks[0]?.artists) &&
-        tracks[0].artists.length > 0
-          ? tracks[0].artists[0]
-          : null;
-      const artistDisplay =
-        primary && typeof primary.name === "string" ? primary.name.trim() : "";
+      const topRes = await fetchArtistTopTracks(artistId, market);
+      if (topRes.ok) {
+        const out = Array.isArray(topRes.tracks)
+          ? topRes.tracks.slice(0, limit)
+          : [];
+        res.set("Cache-Control", "public, max-age=300");
+        res.json({
+          ok: true,
+          mode: "top",
+          tracks: out,
+          meta: { source: "spotify_top" },
+        });
+        return;
+      }
 
-      res.set("Cache-Control", "public, max-age=300");
-      res.json({
-        ok: true,
-        mode: "top",
-        artistId,
-        market,
-        tracks,
-        meta: {
-          note: usedManualTrackFallback
-            ? `Tracks loaded via SPOTIFY_TOP_TRACK_IDS (GET /tracks). Spotify blocked GET …/top-tracks (403) — typical for apps in Development mode without Extended Quota. Showing ${tracks.length} track(s).`
-            : `Spotify returns up to 10 popular tracks per market; this response includes up to ${limitTop}.`,
-          artistName: artistDisplay || undefined,
-          source: usedManualTrackFallback ? "track_ids_env" : "top_tracks_api",
-        },
+      // topRes failed (e.g., 403). Try GET /tracks fallback using SPOTIFY_TOP_TRACK_IDS
+      if (manualIds.length > 0) {
+        const tracksByIdsResult = await fetchTracksByIds(
+          manualIds.slice(0, limit),
+        );
+        if (tracksByIdsResult.ok) {
+          res.set("Cache-Control", "public, max-age=300");
+          res.json({
+            ok: true,
+            mode: "manual",
+            tracks: tracksByIdsResult.tracks,
+            meta: { source: "env_fallback", topError: topRes },
+          });
+          return;
+        }
+        // Both top and ids fallback failed — return explanatory error
+        const msg = spotifyTopModeClientError(
+          topRes,
+          tracksByIdsResult,
+          manualIds.length,
+        );
+        res
+          .status(502)
+          .json({ ok: false, error: msg, meta: { topError: topRes } });
+        return;
+      }
+
+      // No manual ids to fall back to — return the top failure message
+      const msg = spotifyTopModeClientError(topRes, null, 0);
+      res
+        .status(502)
+        .json({ ok: false, error: msg, meta: { topError: topRes } });
+      return;
+    }
+
+    // mode === catalog
+    if (!spotifyConfigured()) {
+      // If not configured, allow manual ids as a very small catalog
+      if (manualIds.length === 0) {
+        res.status(503).json({
+          ok: false,
+          mode: "catalog",
+          tracks: [],
+          meta: {
+            note: "Spotify not configured and no SPOTIFY_TOP_TRACK_IDS provided.",
+          },
+        });
+        return;
+      }
+      const tracksByIdsResult = await fetchTracksByIds(
+        manualIds.slice(0, Math.min(limit, 50)),
+      );
+      if (tracksByIdsResult.ok) {
+        res.set("Cache-Control", "public, max-age=300");
+        res.json({
+          ok: true,
+          mode: "manual",
+          tracks: tracksByIdsResult.tracks,
+          meta: { source: "env" },
+        });
+        return;
+      }
+      res.status(502).json({
+        ok: false,
+        error: "Spotify not configured and manual fallback failed",
       });
       return;
     }
 
-    const limit = Math.min(
-      500,
-      Math.max(1, Number.parseInt(String(req.query.limit || "200"), 10) || 200),
+    // Use catalog: scan albums+singles + tracks (deduped)
+    const market = normalizeSpotifyMarketIso(
+      req.query.market,
+      process.env.SPOTIFY_MARKET,
     );
-
-    const result = await fetchArtistCatalogTracks(artistId, market, {
-      maxTracks: limit,
+    const maxTracks = Math.min(
+      500,
+      Math.max(
+        1,
+        Number.parseInt(String(req.query.maxTracks || limit), 10) || limit,
+      ),
+    );
+    const catalogRes = await fetchArtistCatalogTracks(artistId, market, {
+      maxTracks,
     });
-
-    if (!result.ok) {
-      if (result.status === 404 || result.error === "artist_not_found") {
-        res.status(404).json({
-          ok: false,
-          tracks: [],
-          error:
-            "Artist not found. SPOTIFY_ARTIST_ID must be the id from open.spotify.com/artist/<id> (not your user profile id).",
-        });
-        return;
-      }
-      res
-        .status(
-          result.status >= 400 && result.status < 600 ? result.status : 502,
-        )
-        .json({
-          ok: false,
-          tracks: [],
-          error: spotifyApiFailureMessage(
-            result,
-            "Spotify catalog request failed",
-          ),
-          spotify: result.body,
-        });
+    if (!catalogRes || !catalogRes.ok) {
+      res.status(catalogRes?.status >= 400 ? catalogRes.status : 502).json({
+        ok: false,
+        error: spotifyApiFailureMessage(
+          catalogRes || { status: 502, body: null },
+          "Artist catalog request failed",
+        ),
+        meta: catalogRes?.meta ?? null,
+      });
       return;
     }
-
+    const out = Array.isArray(catalogRes.tracks)
+      ? catalogRes.tracks.slice(0, limit)
+      : [];
     res.set("Cache-Control", "public, max-age=300");
     res.json({
       ok: true,
       mode: "catalog",
-      artistId,
-      market,
-      tracks: result.tracks,
-      meta: result.meta,
+      tracks: out,
+      meta: catalogRes.meta || null,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({
       ok: false,
-      tracks: [],
       error: err instanceof Error ? err.message : "Spotify request failed",
     });
   }

@@ -8,7 +8,7 @@ export const EPK = {
   socialCta: "Follow me 👉🏾👈🏾",
   hero: {
     // Replace with your own background photo later (put it in `public/` if you want it local).
-    backgroundImage: "media/photos/viggy_hero.jpg",
+    backgroundImage: "/media/photos/viggy_hero.jpg",
   },
   socials: [
     {
@@ -123,10 +123,13 @@ export const EPK = {
     },
   ],
   quickActions: [
+    { label: "About", href: "#about" },
+    { label: "Music", href: "#listen" },
+
     { label: "Upcoming Shows", href: "#shows-upcoming" },
-    { label: "Listen", href: "#listen" },
     { label: "Media", href: "#media" },
     { label: "YouTube", href: "#youtube" },
+    { label: "Contact", href: "#contact" },
   ],
   contact: {
     email: "viggysounds@gmail.com",
