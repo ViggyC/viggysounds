@@ -1174,8 +1174,8 @@ export default function App() {
 
               <p>
                 His music pulls from the emotion and atmosphere of film scores
-                and combines it with the energy of dubstep, experimental bass,
-                and trap. The result is a sound that can feel beautiful and
+                and combines it with the energy of dubstep, future bass, and
+                trap. The result is a sound that can feel beautiful and
                 nostalgic one second, then completely flip the next.
               </p>
 
@@ -1277,10 +1277,7 @@ export default function App() {
                     )}
                     <div className="musicArtTileOverlay">
                       <h3 className="musicArtTileTitle">{t.title}</h3>
-                      <MusicLinksRow
-                        track={t}
-                        className="musicArtTileLinks"
-                      />
+                      <MusicLinksRow track={t} className="musicArtTileLinks" />
                     </div>
                     {isLatest ? (
                       <span className="musicArtTileBadge">Latest</span>
