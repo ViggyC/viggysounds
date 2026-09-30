@@ -46,12 +46,21 @@ export const EPK = {
   // Optional: `href` + `statusLabel` (tickets), `instagram` (highlights when past).
   shows: [
     {
+      date: "October 8thth, 2026",
+      title: "Support for Debbie Check",
+      venue: "Larimer Lounge",
+      city: "Denver, CO",
+      tickets:
+        "https://www.etix.com/ticket/p/99177283/debbie-check-wnciteeyewitnessviggy-dipper-denver-larimer-lounge",
+    },
+    {
       date: "September 18th, 2026",
       title: "BRMG",
       venue: "Warehouse",
       city: "Loveland, CO",
       tickets:
         "https://www.eventbrite.com/e/brmg-presents-waylo-tickets-1997614133648",
+      instagram: "https://www.instagram.com/p/Ddm9ozEDjIZ",
     },
     {
       date: "July 10-11, 2026",
