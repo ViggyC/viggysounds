@@ -115,15 +115,19 @@ export const EPK = {
   ],
   youtubeVideos: [
     {
-      title: "Black Box June 12th, 2026",
+      title: "Basment Rave Management Group 09/18/2026",
+      videoId: "QBzhmfxAfLY",
+    },
+    {
+      title: "Black Box 06/12/2026",
       videoId: "L3NLAukAFTw",
     },
     {
-      title: "Full Live DJ Set @ Larimer Lounge",
+      title: "Full Live DJ Set @ Larimer Lounge 3/12/2026",
       videoId: "gJEODcIixys",
     },
     {
-      title: "Full Live Treehouse Show",
+      title: "Full Live Treehouse Show 04/16/2026",
       videoId: "TabYDiwE0m8",
     },
     {
