@@ -2,6 +2,12 @@
 # Optional per track: beatport — store URL (shown as a Beatport button when set).
 category: original
 tracks:
+  - title: "Ludovico Einaudi - Experience (VIGGY COVER)"
+    releaseDate: "2026-10-02"
+    soundcloud: "https://soundcloud.com/viggysounds/ludovico-einaudi-experience"
+    coverArt: "media/cover-art/experience.png"
+    description: "This is my all time favorite"
+
   - title: "REIGN FIRE"
     releaseDate: "2026-07-31"
     soundcloud: "https://soundcloud.com/viggysounds/reign-fire"
