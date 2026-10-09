@@ -46,7 +46,7 @@ export const EPK = {
   // Optional: `href` + `statusLabel` (tickets), `instagram` (highlights when past).
   shows: [
     {
-      date: "October 8thth, 2026",
+      date: "October 8th, 2026",
       title: "Support for Debbie Check",
       venue: "Larimer Lounge",
       city: "Denver, CO",

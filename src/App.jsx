@@ -1168,23 +1168,26 @@ export default function App() {
             />
             <div className="aboutBody">
               <p className="aboutLead">
-                VIGGY is a Denver-based producer and DJ making electronic bass
-                music with a cinematic edge.
+                VIGGY is a force in the underground electronic scene—a
+                Denver-based producer and DJ whose live presence, sold-out
+                support slots, and steadily growing fan base continue to build
+                serious momentum.
               </p>
 
               <p>
-                His music pulls from the emotion and atmosphere of film scores
-                and combines it with the energy of dubstep, future bass, and
-                trap. The result is a sound that can feel beautiful and
-                nostalgic one second, then completely flip the next.
+                His music blends cinematic atmosphere with the weight of
+                dubstep, future bass, and trap, creating a sound that feels
+                emotional, immersive, and heavy without ever losing identity.
+                The result is a style that can move a crowd from introspection
+                to impact in a single transition.
               </p>
 
               <p>
-                That approach comes through in his bass reimagining of{" "}
-                <strong>Hans Zimmer’s “Time,”</strong> where one of film music’s
-                most recognizable pieces is rebuilt through the VIGGY
-                sound—keeping the emotion of the original while taking it
-                somewhere much heavier.
+                From reworking iconic film music to commanding rooms with his
+                own original cuts, VIGGY has become known for performances that
+                feel personal, powerful, and impossible to ignore. Every support
+                slot he sells out and every new listener that joins the movement
+                reinforces the same truth: this is an artist on the rise.
               </p>
 
               <p>
