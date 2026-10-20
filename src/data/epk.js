@@ -115,6 +115,10 @@ export const EPK = {
   ],
   youtubeVideos: [
     {
+      title: "VIGGY @ Larimer Lounge FULL SET 10/08/2026",
+      videoId: "7-7mLEimMTs",
+    },
+    {
       title: "Basment Rave Management Group 09/18/2026",
       videoId: "QBzhmfxAfLY",
     },
