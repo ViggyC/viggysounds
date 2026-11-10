@@ -4,6 +4,22 @@ export const EPK = {
   // Use a relative path (no leading `/`) so it works on GitHub Pages project subpaths.
   logo: "media/art/VIGGY_NEW_LOGO.png",
   artistTagline: "Cinematic Bass Music",
+  about: {
+    lead: "VIGGY is a force in the underground electronic scene—a Denver-based producer and DJ whose live presence, sold-out support slots, and steadily growing fan base continue to build serious momentum.",
+    paragraphs: [
+      [
+        "His music blends cinematic atmosphere with the weight of dubstep, future bass, and trap, creating a sound that feels emotional, immersive, and heavy without ever losing identity. The result is a style that can move a crowd from introspection to impact in a single transition.",
+      ],
+      [
+        "From reworking iconic film music to commanding rooms with his own original cuts, VIGGY has become known for performances that feel personal, powerful, and impossible to ignore. His Mission Ballroom debut was his biggest show yet—a sold-out night in front of thousands. Every new listener that joins the movement reinforces the same truth: this is an artist on the rise.",
+      ],
+      [
+        "At the center of the project is ",
+        { strong: "cinematic bass" },
+        ": music that tells a story, builds a world, and still hits hard on a festival system.",
+      ],
+    ],
+  },
   /** Line above hero social icon buttons */
   socialCta: "Follow me 👉🏾👈🏾",
   hero: {
@@ -46,12 +62,26 @@ export const EPK = {
   // Optional: `href` + `statusLabel` (tickets), `instagram` (highlights when past).
   shows: [
     {
+      date: "Novenber 28th, 2026",
+      title: "Support for Costa",
+      venue: "Bluebird Theater",
+      city: "Denver, CO",
+      tickets:
+        "https://www.etix.com/ticket/p/99177283/debbie-check-wnciteeyewitnessviggy-dipper-denver-larimer-lounge",
+    },
+    {
+      date: "October 31th, 2026",
+      title: "Warehouse.Wavs with Whethan",
+      venue: "Mission Ballrrom",
+      city: "Denver, CO",
+      instagram: "https://www.instagram.com/p/DfXv9moj-aE",
+    },
+    {
       date: "October 8th, 2026",
       title: "Support for Debbie Check",
       venue: "Larimer Lounge",
       city: "Denver, CO",
-      tickets:
-        "https://www.etix.com/ticket/p/99177283/debbie-check-wnciteeyewitnessviggy-dipper-denver-larimer-lounge",
+      instagram: "https://www.instagram.com/p/DecX58yFBWv",
     },
     {
       date: "September 18th, 2026",
@@ -143,7 +173,7 @@ export const EPK = {
     { label: "About", href: "#about" },
     { label: "Music", href: "#listen" },
 
-    { label: "Upcoming Shows", href: "#shows-upcoming" },
+    { label: "Shows", href: "#shows-upcoming" },
     { label: "Media", href: "#media" },
     { label: "YouTube", href: "#youtube" },
     { label: "Contact", href: "#contact" },

@@ -1167,41 +1167,18 @@ export default function App() {
               loading="eager"
             />
             <div className="aboutBody">
-              <p className="aboutLead">
-                VIGGY is a force in the underground electronic scene—a
-                Denver-based producer and DJ whose live presence, sold-out
-                support slots, and steadily growing fan base continue to build
-                serious momentum.
-              </p>
-
-              <p>
-                His music blends cinematic atmosphere with the weight of
-                dubstep, future bass, and trap, creating a sound that feels
-                emotional, immersive, and heavy without ever losing identity.
-                The result is a style that can move a crowd from introspection
-                to impact in a single transition.
-              </p>
-
-              <p>
-                From reworking iconic film music to commanding rooms with his
-                own original cuts, VIGGY has become known for performances that
-                feel personal, powerful, and impossible to ignore. Every support
-                slot he sells out and every new listener that joins the movement
-                reinforces the same truth: this is an artist on the rise.
-              </p>
-
-              <p>
-                At the center of the project is <strong>cinematic bass</strong>:
-                music that tells a story, builds a world, and still hits hard on
-                a festival system.
-              </p>
-
-              <p>
-                For VIGGY, it’s never just about making the biggest drop.{" "}
-                <strong>
-                  It’s about making you feel something before it hits.
-                </strong>
-              </p>
+              <p className="aboutLead">{EPK.about.lead}</p>
+              {EPK.about.paragraphs.map((paragraph, paragraphIndex) => (
+                <p key={paragraphIndex}>
+                  {paragraph.map((segment, segmentIndex) =>
+                    typeof segment === "string" ? (
+                      segment
+                    ) : (
+                      <strong key={segmentIndex}>{segment.strong}</strong>
+                    ),
+                  )}
+                </p>
+              ))}
             </div>
           </div>
         </section>

@@ -189,15 +189,16 @@ Each YAML file has:
 - `tracks`: an array of tracks with optional `url`, `spotify`, `soundcloud`, and `description`
 - `coverArt`: (optional) string path to a local image, e.g. `media/cover-art/my-track.jpg`
 
-### Optimize cover art
+### Optimize media images
 
-Drop source images into `public/media/cover-art/`, then resize/compress them before committing (keeps page load fast):
+Resize and compress images before committing to keep page loads fast:
 
 ```bash
 npm run optimize:covers
+npm run optimize:photos
 ```
 
-This rewrites files in place (max 800×800). Run it whenever you add or replace cover art.
+Both commands rewrite images in place and recursively scan their media folder. Cover art is limited to 800×800; photos (including show photos and the hero image) are limited to 1920×1920. Run the relevant command whenever you add or replace images.
 
 ---
 

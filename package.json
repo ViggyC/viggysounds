@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "optimize:covers": "node scripts/optimize-covers.mjs",
+    "optimize:covers": "node scripts/optimize-images.mjs covers",
+    "optimize:photos": "node scripts/optimize-images.mjs photos",
     "server:dev": "npm run dev --prefix server",
     "server:start": "npm run start --prefix server"
   },
