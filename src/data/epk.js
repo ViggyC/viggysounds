@@ -24,7 +24,7 @@ export const EPK = {
   socialCta: "Follow me 👉🏾👈🏾",
   hero: {
     // Replace with your own background photo later (put it in `public/` if you want it local).
-    backgroundImage: "/media/photos/viggy_hero.jpg",
+    backgroundImage: "/media/photos/shows/2.jpg",
   },
   socials: [
     {

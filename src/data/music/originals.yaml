@@ -6,7 +6,6 @@ tracks:
     releaseDate: "2026-10-02"
     soundcloud: "https://soundcloud.com/viggysounds/ludovico-einaudi-experience"
     coverArt: "media/cover-art/experience.png"
-    description: "This is my all time favorite"
 
   - title: "REIGN FIRE"
     releaseDate: "2026-07-31"
@@ -14,7 +13,6 @@ tracks:
     spotify: "https://open.spotify.com/track/2qEXeo0kGacoiNP2zHrS69?si=4ef1877569d94986"
     beatport: "https://www.beatport.com/release/reign-fire/7211547"
     coverArt: "media/cover-art/REIGNFIRE.png"
-    description: "Cinematic Bass Music, for Dragon Riders"
 
   - title: "Hans Zimmer - TIME (VIGGY FLIP)"
     releaseDate: "2026-06-02"
@@ -22,7 +20,6 @@ tracks:
     spotify: "https://open.spotify.com/track/5mHDSognGISC3MElp3udNm?si=00b57d780f81481b"
     beatport: "https://www.beatport.com/release/time/7033564"
     coverArt: "media/cover-art/TIME.png"
-    description: "Dreamstep"
 
   - title: "DROP IT"
     releaseDate: "2026-04-24"
@@ -30,7 +27,6 @@ tracks:
     spotify: "https://open.spotify.com/track/2A321gYobEiFKvl7qkPd7p?si=87a5c94f4c424214"
     beatport: "https://www.beatport.com/release/drop-it/6796067"
     coverArt: "media/cover-art/dropit.png"
-    description: "Skrt, drop it yuh"
 
   - title: "HYPNOVIG"
     releaseDate: "2026-04-03"
@@ -38,7 +34,6 @@ tracks:
     spotify: "https://open.spotify.com/track/0QTlrErFubM5ZbcN8vL34q?si=0e5844ebbab6420d"
     beatport: "https://www.beatport.com/release/hypnovig/6764228"
     coverArt: "media/cover-art/HYPNOVIG.JPG"
-    description: "VIGGY VIGGY VIGGY, can't you see? Sometimes your sounds just hypnotize me 😵‍💫"
 
   - title: "ENERGY"
     releaseDate: "2026-02-27"
@@ -46,7 +41,6 @@ tracks:
     soundcloud: "https://soundcloud.com/browneedub/energy"
     beatport: "https://www.beatport.com/release/energy/5998541"
     coverArt: "media/cover-art/ENERGY.JPG"
-    description: "Brownee x VIGGY x Keylo"
 
   - title: "DEEPER"
     releaseDate: "2026-01-01"
@@ -54,7 +48,6 @@ tracks:
     soundcloud: "https://soundcloud.com/viggysounds/deeper"
     beatport: "https://www.beatport.com/release/deeper/6766553"
     coverArt: "media/cover-art/DEEPER.png"
-    description: "Journey into the depths of the mind and heart"
 
   - title: "I LIKE THAT."
     releaseDate: "2025-09-27"
@@ -62,7 +55,6 @@ tracks:
     soundcloud: "https://soundcloud.com/viggysounds/i-like-that-viggy"
     beatport: "https://www.beatport.com/release/i-like-that/6766554"
     coverArt: "media/cover-art/ILIKETHAT.png"
-    description: "You will like this"
 
   - title: "COHERENCE"
     releaseDate: "2025-05-23"
@@ -70,7 +62,6 @@ tracks:
     soundcloud: "https://soundcloud.com/viggysounds/coherence"
     beatport: "https://www.beatport.com/release/coherence/6766673"
     coverArt: "media/cover-art/coherence.jpeg"
-    description: "The flow of awareness and insight that we experience once the mind and emotions are brought into balance"
 
   - title: "GET YOU HIGH"
     releaseDate: "2025-05-16"
@@ -78,4 +69,3 @@ tracks:
     soundcloud: "https://soundcloud.com/viggysounds/getyouhigh"
     beatport: "https://www.beatport.com/release/get-you-high/6766675"
     coverArt: "media/cover-art/get_you_high.png"
-    description: "Just Vibes"
