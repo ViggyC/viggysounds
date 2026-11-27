@@ -145,6 +145,10 @@ export const EPK = {
   ],
   youtubeVideos: [
     {
+      title: "VIGGY Live @ Mission Ballroom Halloween 2026`",
+      videoId: "SqSP5_dO9e0",
+    },
+    {
       title: "VIGGY @ Larimer Lounge FULL SET 10/08/2026",
       videoId: "7-7mLEimMTs",
     },
